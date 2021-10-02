@@ -212,7 +212,7 @@ public class ThreadLocal<T> {
 
 我们自己可以尝试下：
 
-[![img](https://github.com/Snailclimb/JavaGuide/raw/master/docs/java/multi-thread/images/thread-local/8.png)](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/multi-thread/images/thread-local/8.png)
+[![img](/Users/zhang/Documents/lagou/lagou_private_education/作业复盘/9.26/8.png)](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/multi-thread/images/thread-local/8.png)
 
 可以看到产生的哈希码分布很均匀，这里不去细纠**斐波那契**具体算法，感兴趣的可以自行查阅相关资料。
 
@@ -702,7 +702,7 @@ private Entry getEntryAfterMiss(ThreadLocal<?> key, int i, Entry e) {
 
 而启发式清理被作者定义为：**Heuristically scan some cells looking for stale entries**.
 
-[![img](https://github.com/Snailclimb/JavaGuide/raw/master/docs/java/multi-thread/images/thread-local/29.png)](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/multi-thread/images/thread-local/29.png)
+[![img](/Users/zhang/Documents/lagou/lagou_private_education/作业复盘/9.26/29.png)](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/multi-thread/images/thread-local/29.png)
 
 具体代码如下：
 
@@ -790,11 +790,11 @@ private void init(ThreadGroup g, Runnable target, String name,
 
 当前端发送请求到**服务 A**时，**服务 A**会生成一个类似`UUID`的`traceId`字符串，将此字符串放入当前线程的`ThreadLocal`中，在调用**服务 B**的时候，将`traceId`写入到请求的`Header`中，**服务 B**在接收请求时会先判断请求的`Header`中是否有`traceId`，如果存在则写入自己线程的`ThreadLocal`中。
 
-[![img](https://github.com/Snailclimb/JavaGuide/raw/master/docs/java/multi-thread/images/thread-local/30.png)](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/multi-thread/images/thread-local/30.png)
+[![img](/Users/zhang/Documents/lagou/lagou_private_education/作业复盘/9.26/30.png)](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/multi-thread/images/thread-local/30.png)
 
 图中的`requestId`即为我们各个系统链路关联的`traceId`，系统间互相调用，通过这个`requestId`即可找到对应链路，这里还有会有一些其他场景：
 
-![img](https://raw.githubusercontent.com/Snailclimb/JavaGuide/master/docs/java/multi-thread/images/thread-local/31.png)
+![img](/Users/zhang/Documents/lagou/lagou_private_education/作业复盘/9.26/31.png)
 
 针对于这些场景，我们都可以有相应的解决方案，如下所示
 
