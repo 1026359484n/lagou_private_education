@@ -145,15 +145,21 @@ cas设置owner，自适应自旋，多次尝试，成功则执行同步代码，
 
 **一旦发生锁竞争或者调用wait()/notify()方法，就会升级为重量级锁，多个线程轮流顺利进入临界区，不叫锁竞争，是轻量级锁。始终只有一个线程进入临界区才有可能是偏向锁**
 
-## 6. AQS
 
-### 6.1. AQS 介绍
+
+锁的释放
+
+![image-20210925221146318](/Users/zhang/Documents/lagou/lagou_private_education/作业复盘/9.19/image-20210925221146318-2579108.png)
+
+## 2. AQS
+
+### 2.1. AQS 介绍
 
 AQS 的全称为（`AbstractQueuedSynchronizer`），这个类在`java.util.concurrent.locks`包下面。
 
 AQS 是一个用来构建锁和同步器的框架，使用 AQS 能简单且高效地构造出应用广泛的大量的同步器，比如我们提到的 `ReentrantLock`，`Semaphore`，其他的诸如 `ReentrantReadWriteLock`，`SynchronousQueue`，`FutureTask` 等等皆是基于 AQS 的。当然，我们自己也能利用 AQS 非常轻松容易地构造出符合我们自己需求的同步器。
 
-### 6.2. AQS 原理分析
+### 2.2. AQS 原理分析
 
 AQS 原理这部分参考了部分博客，在 5.2 节末尾放了链接。
 
@@ -161,7 +167,7 @@ AQS 原理这部分参考了部分博客，在 5.2 节末尾放了链接。
 
 下面大部分内容其实在 AQS 类注释上已经给出了，不过是英语看着比较吃力一点，感兴趣的话可以看看源码。
 
-#### 6.2.1. AQS 原理概览
+#### 2.2.1. AQS 原理概览
 
 **AQS 核心思想是，如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的工作线程，并且将共享资源设置为锁定状态。如果被请求的共享资源被占用，那么就需要一套线程阻塞等待以及被唤醒时锁分配的机制，这个机制 AQS 是用 CLH 队列锁实现的，即将暂时获取不到锁的线程加入到队列中。**
 
@@ -194,7 +200,7 @@ protected final boolean compareAndSetState(int expect, int update) {
 }
 ```
 
-#### 6.2.2. AQS 对资源的共享方式
+#### 2.2.2. AQS 对资源的共享方式
 
 **AQS 定义两种资源共享方式**
 
@@ -207,7 +213,7 @@ protected final boolean compareAndSetState(int expect, int update) {
 
 不同的自定义同步器争用共享资源的方式也不同。自定义同步器在实现时只需要实现共享资源 state 的获取与释放方式即可，至于具体线程等待队列的维护（如获取资源失败入队/唤醒出队等），AQS 已经在顶层实现好了。
 
-#### 6.2.3. AQS 底层使用了模板方法模式
+#### 2.2.3. AQS 底层使用了模板方法模式
 
 同步器的设计是基于模板方法模式的，如果需要自定义同步器一般的方式是这样（模板方法模式很经典的一个应用）：
 
@@ -248,3 +254,22 @@ isHeldExclusively()//该线程是否正在独占资源。只有用到condition�
 
 > `Condition`是 JDK1.5 之后才有的，它具有很好的灵活性，比如可以实现多路通知功能也就是在一个`Lock`对象中可以创建多个`Condition`实例（即对象监视器），**线程对象可以注册在指定的`Condition`中，从而可以有选择性的进行线程通知，在调度线程上更加灵活。 在使用`notify()/notifyAll()`方法进行通知时，被通知的线程是由 JVM 选择的，用`ReentrantLock`类结合`Condition`实例可以实现“选择性通知”** ，这个功能非常重要，而且是 Condition 接口默认提供的。而`synchronized`关键字就相当于整个 Lock 对象中只有一个`Condition`实例，所有的线程都注册在它一个身上。如果执行`notifyAll()`方法的话就会通知所有处于等待状态的线程这样会造成很大的效率问题，而`Condition`实例的`signalAll()`方法 只会唤醒注册在该`Condition`实例中的所有等待线程。
 
+
+
+## 参考博客
+
+https://developers.weixin.qq.com/community/develop/article/doc/000444aef380f0f4ef6cda76856413
+
+https://zhuanlan.zhihu.com/p/356010805
+
+https://juejin.cn/post/6936067917255540767
+
+https://mp.weixin.qq.com/s?__biz=MzkxNTE3NjQ3MA==&mid=2247488192&idx=1&sn=85fa12be29fef85d41c571b2c853de5d&scene=21#wechat_redirect
+
+https://tech.meituan.com/2018/11/15/java-lock.html
+
+https://zhuanlan.zhihu.com/p/364080848
+
+https://www.cnblogs.com/zhai1997/p/13546652.html
+
+https://zhuanlan.zhihu.com/p/309822935

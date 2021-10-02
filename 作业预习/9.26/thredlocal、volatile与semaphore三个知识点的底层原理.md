@@ -135,11 +135,11 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
 
 比如我们在同一个线程中声明了两个 `ThreadLocal` 对象的话，会使用 `Thread`内部都是使用仅有那个`ThreadLocalMap` 存放数据的，`ThreadLocalMap`的 key 就是 `ThreadLocal`对象，value 就是 `ThreadLocal` 对象调用`set`方法设置的值。
 
-[![ThreadLocal数据结构](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/threadlocal数据结构.png)](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/multi-thread/images/threadlocal数据结构.png)
+[![ThreadLocal数据结构](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/9.26/threadlocal数据结构.png)](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/multi-thread/images/threadlocal数据结构.png)
 
 `ThreadLocalMap`是`ThreadLocal`的静态内部类。
 
-[![ThreadLocal内部类](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/ThreadLocal内部类.png)](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/multi-thread/images/ThreadLocal内部类.png)
+[![ThreadLocal内部类](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/9.26/ThreadLocal内部类.png)](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/multi-thread/images/ThreadLocal内部类.png)
 
 ### 1.4. ThreadLocal 内存泄露问题
 
@@ -181,7 +181,7 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
 
 为了更好地理解，我画了一个简单的 CPU Cache 示意图如下（实际上，现代的 CPU Cache 通常分为三层，分别叫 L1,L2,L3 Cache）:
 
-![img](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/CPU-Cache.png)
+![img](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/9.26/CPU-Cache.png)
 
 **CPU Cache 的工作方式：**
 
@@ -193,13 +193,13 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
 
 在 JDK1.2 之前，Java 的内存模型实现总是从**主存**（即共享内存）读取变量，是不需要进行特别的注意的。而在当前的 Java 内存模型下，线程可以把变量保存**本地内存**（比如机器的寄存器）中，而不是直接在主存中进行读写。这就可能造成一个线程在主存中修改了一个变量的值，而另外一个线程还继续使用它在寄存器中的变量值的拷贝，造成**数据的不一致**。
 
-[![JMM(/Users/zhang/Documents/文档/笔记/基础/68747470733a2f2f67756964652d626c6f672d696d616765732e6f73732d636e2d7368656e7a68656e2e616c6979756e63732e636f6d2f323032302d382f30616337653636332d376462382d346239352d386438652d3764326231373966363765382e706e67.png)](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/68747470733a2f2f67756964652d626c6f672d696d616765732e6f73732d636e2d7368656e7a68656e2e616c6979756e63732e636f6d2f323032302d382f30616337653636332d376462382d346239352d386438652d3764326231373966363765382e706e67.png)](https://camo.githubusercontent.com/0d7249a3f7a61706f94ff429328e2d28c19ccc4801370fa8d4f8cd2d290b895a/68747470733a2f2f67756964652d626c6f672d696d616765732e6f73732d636e2d7368656e7a68656e2e616c6979756e63732e636f6d2f323032302d382f30616337653636332d376462382d346239352d386438652d3764326231373966363765382e706e67)
+[![JMM(/Users/zhang/Documents/lagou/lagou_private_education/作业预习/9.26/68747470733a2f2f67756964652d626c6f672d696d616765732e6f73732d636e2d7368656e7a68656e2e616c6979756e63732e636f6d2f323032302d382f30616337653636332d376462382d346239352d386438652d3764326231373966363765382e706e67.png)](https://camo.githubusercontent.com/0d7249a3f7a61706f94ff429328e2d28c19ccc4801370fa8d4f8cd2d290b895a/68747470733a2f2f67756964652d626c6f672d696d616765732e6f73732d636e2d7368656e7a68656e2e616c6979756e63732e636f6d2f323032302d382f30616337653636332d376462382d346239352d386438652d3764326231373966363765382e706e67)
 
 要解决这个问题，就需要把变量声明为 **`volatile`** ，这就指示 JVM，这个变量是共享且不稳定的，每次使用它都到主存中进行读取。
 
 所以，**`volatile` 关键字 除了防止 JVM 的指令重排 ，还有一个重要的作用就是保证变量的可见性。**
 
-[![volatile关键字的可见性](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/68747470733a2f2f67756964652d626c6f672d696d616765732e6f73732d636e2d7368656e7a68656e2e616c6979756e63732e636f6d2f323032302d382f64343963353535372d313430622d346162662d616461642d3861616333633930333663662e706e67.png)](https://camo.githubusercontent.com/21e256db07eef2a3b355db9d1ffbf2036dd3dc8c3a6fb41cd2fa4df0f4ba0e00/68747470733a2f2f67756964652d626c6f672d696d616765732e6f73732d636e2d7368656e7a68656e2e616c6979756e63732e636f6d2f323032302d382f64343963353535372d313430622d346162662d616461642d3861616333633930333663662e706e67)
+[![volatile关键字的可见性](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/9.26/68747470733a2f2f67756964652d626c6f672d696d616765732e6f73732d636e2d7368656e7a68656e2e616c6979756e63732e636f6d2f323032302d382f64343963353535372d313430622d346162662d616461642d3861616333633930333663662e706e67.png)](https://camo.githubusercontent.com/21e256db07eef2a3b355db9d1ffbf2036dd3dc8c3a6fb41cd2fa4df0f4ba0e00/68747470733a2f2f67756964652d626c6f672d696d616765732e6f73732d636e2d7368656e7a68656e2e616c6979756e63732e636f6d2f323032302d382f64343963353535372d313430622d346162662d616461642d3861616333633930333663662e706e67)
 
 ### 2.3. 并发编程的三个重要特性
 
@@ -218,4 +218,10 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
 
 
 ## 3.Semaphore
+
+Semaphore可以控制某个资源可被同时访问的个数，通过 acquire() 获取一个许可，如果没有就等待，而 release() 释放一个许可。比如在Windows下可以设置共享文件的最大客户端访问个数。
+
+允许多个线程同时访问：** `synchronized` 和 `ReentrantLock` 都是一次只允许一个线程访问某个资源，`Semaphore`(信号量)可以指定多个线程同时访问某个资源。
+
+通过AQS机制实现，内部类通过重写tryAcquireShared()/tryReleaseShared()方法来实现
 
