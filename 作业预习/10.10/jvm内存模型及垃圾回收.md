@@ -97,6 +97,8 @@ Java 堆是垃圾收集器管理的主要区域，因此也被称作**GC 堆（G
 
 JDK 8 版本之后方法区（HotSpot 的永久代）被彻底移除了（JDK1.7 就已经开始了），取而代之是元空间，元空间使用的是直接内存。
 
+
+
 [![JVM堆内存结构-JDK8](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/10.10/JVM%E5%A0%86%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84-jdk8.png)](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/jvm/pictures/java内存区域/JVM堆内存结构-jdk8.png)
 
 **上图所示的 Eden 区、两个 Survivor 区都属于新生代（为了区分，这两个 Survivor 区域按照顺序被命名为 from 和 to），中间一层属于老年代。**
@@ -460,7 +462,7 @@ false
 true
 ```
 
-#### 1.4.3 8 种基本类型的包装类和常量池
+#### 1.·4.3 8 种基本类型的包装类和常量池
 
 Java 基本类型的包装类的大部分都实现了常量池技术。
 
