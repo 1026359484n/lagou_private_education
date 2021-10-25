@@ -475,3 +475,59 @@ set tx_isolation='SERIALIZABLE';
     - Innodb_row_lock_waits：系统启动后到现在总共等待的次数
 
     如果等待次数高，而且每次等待时间长，需要分析系统中为什么会有如此多的等待，然后着手定制优化。
+
+题目:
+
+表结构 :
+
+```sql
+create table if not exists test.a
+(
+    id      int auto_increment
+        primary key,
+    age    int null
+);
+
+create index a_age_index
+    on test.a (age);
+```
+
+数据: 
+
+|  id  | age  |
+| :--: | ---- |
+|  1   | 20   |
+|  2   | 40   |
+|  3   | 80   |
+
+操作：
+
+|                  事务A                   |                事务B                 |                 事务C                 | 步骤 |
+| :--------------------------------------: | :----------------------------------: | :-----------------------------------: | :--: |
+|                                          | insert into a (id,age) values(4,50); |                                       |  1   |
+|                                          | insert into a (id,age) values(5,60); |                                       |  2   |
+| select * from a where age=55 for update; |                                      |                                       |  3   |
+|                                          |                                      | insert into a (id,age) values(6,45);  |  4   |
+|                                          |                                      | insert into a (id,age) values(7,52);  |  5   |
+|                                          |                                      | insert into a (id,age) values(8,65);  |  6   |
+|                                          |    delete from a where age = 50;     |                                       |  7   |
+|                                          |                                      | insert into a (id,age) values(9,48);  |  8   |
+|                                          |                                      | insert into a (id,age) values(10,43); |  9   |
+|                                          |                                      | insert into a (id,age) values(11,63); |  10  |
+
+步骤4，5，6，8，9，10执行情况
+
+4、6执行成功，5阻塞；8阻塞，9、10执行成功
+
+间隙锁会跨事务扩张范围
+
+锁总结: 
+
+insert语句只添加RecordLock，不添加GapLock和Next-key Lock;
+
+Update,delete,select……for update语句在无匹配记录时会添加GapLock，有匹配记录时若索引为唯一索引添加RecordLock，普通索引则添加Next-key Lock；
+
+GapLock在删除上下限记录时会跨事务扩张范围；
+
+GapLock为共享锁，Update,delete,select……for update添加的RecordLock为排他锁,Next-key Lock中对应记录为排他锁，间隙为共享锁，select……lock in share mode添加的都为共享锁。
+
