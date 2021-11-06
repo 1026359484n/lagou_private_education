@@ -1,8 +1,351 @@
 # Spring MVC
 
+## 第 **1** 节 **Spring MVC** 简介
+
+### **1.1 MVC** 体系结构
+
+三层架构
+
+我们的开发架构⼀般都是基于两种形式，⼀种是 C/S 架构，也就是客户端/服务器；另⼀种是 B/S 架构，也就是浏览器服务器。在 JavaEE 开发中，⼏乎全都是基于 B/S 架构的开发。那么在 B/S 架构中，系统标准的三层架构包括：表现层、业务层、持久层。
+
+三层架构中，每⼀层各司其职，接下来我们就说说每层都负责哪些⽅⾯：
+
+表现层 ：
+
+也就是我们常说的web 层。它负责接收客户端请求，向客户端响应结果，通常客户端使⽤http 协议请求web 层，web 需要接收 http 请求，完成 http 响应。
+
+表现层包括展示层和控制层：控制层负责接收请求，展示层负责结果的展示。
+
+表现层依赖业务层，接收到客户端请求⼀般会调⽤业务层进⾏业务处理，并将处理结果响应给客户端。
+
+表现层的设计⼀般都使⽤ MVC 模型。（MVC 是表现层的设计模型，和其他层没有关系）
+
+业务层 ：
+
+也就是我们常说的 service 层。它负责业务逻辑处理，和我们开发项⽬的需求息息相关。web 层依赖业务层，但是业务层不依赖 web 层。
+
+业务层在业务处理时可能会依赖持久层，如果要对数据持久化需要保证事务⼀致性。（也就是我们说的， 事务应该放到业务层来控制）
+
+持久层 ：也就是我们是常说的 dao 层。负责数据持久化，包括数据层即数据库和数据访问层，数据库是对数据进⾏持久化的载体，数据访问层是业务层和持久层交互的接⼝，业务层需要通过数据访问层将数据持久化到数据库中。通俗的讲，持久层就是和数据库交互，对数据库表进⾏增删改查的。
+
+**MVC**设计模式
+
+MVC 全名是 Model View Controller，是 模型(model)－视图(view)－控制器(controller) 的缩写， 是⼀种⽤于设计创建 Web 应⽤程序表现层的模式。MVC 中每个部分各司其职：
+
+Model（模型）：模型包含业务模型和数据模型，数据模型⽤于封装数据，业务模型⽤于处理业务。
+
+View（视图）： 通常指的就是我们的 jsp 或者 html。作⽤⼀般就是展示数据的。通常视图是依据模型数据创建的。
+
+Controller（控制器）： 是应⽤程序中处理⽤户交互的部分。作⽤⼀般就是处理程序逻辑的。
+
+MVC提倡：每⼀层只编写⾃⼰的东⻄，不编写任何其他的代码；分层是为了解耦，解耦是为了维护⽅便和分⼯协作。
+
+### **1.2 Spring MVC** 是什么？
+
+SpringMVC 全名叫 Spring Web MVC，是⼀种基于 Java 的实现 MVC 设计模型的请求驱动类型的轻量级Web 框架，属于 SpringFrameWork 的后续产品。
+
+SpringMVC 已经成为 ⽬前最主流的 MVC 框架 之⼀，并且 随着 Spring3.0 的发布，全⾯超越 Struts2，成为最优秀的 MVC 框架。
+
+servlet、struts实现接⼝、springmvc中要让⼀个java类能够处理请求只需要添加注解就ok它通过⼀套注解，让⼀个简单的 Java 类成为处理请求的控制器，⽽⽆须实现任何接⼝。同时它还⽀持RESTful 编程⻛格的请求。
+
+总之：Spring MVC和Struts2⼀样，都是 为了解决表现层问题 的web框架，它们都是基于 MVC 设计模式的。⽽这些表现层框架的主要职责就是处理前端HTTP请求。
+
+Spring MVC 本质可以认为是对servlet的封装，简化了我们serlvet的开发
+
+作⽤：1）接收请求 2）返回响应，跳转页⾯
+
+## 第 **2** 节 **Spring Web MVC** ⼯作流程
+
+需求：前端浏览器请求url：http://localhost:8080/demo/handle01，前端⻚⾯显示后台服务器的时间
+
+开发过程
+
+1）配置DispatcherServlet前端控制器
+
+2）开发处理具体业务逻辑的Handler（@Controller、@RequestMapping） 
+
+3）xml配置⽂件配置controller扫描，配置springmvc三⼤件
+
+4）将xml⽂件路径告诉springmvc（DispatcherServlet）
+
+### **2.1 Spring MVC** 请求处理流程流程说明
+
+第⼀步：⽤户发送请求⾄前端控制器DispatcherServlet
+
+第⼆步：DispatcherServlet收到请求调⽤HandlerMapping处理器映射器
+
+第三步：处理器映射器根据请求Url找到具体的Handler（后端控制器），⽣成处理器对象及处理器拦截
+
+器(如果 有则⽣成)⼀并返回DispatcherServlet
+
+第四步：DispatcherServlet调⽤HandlerAdapter处理器适配器去调⽤Handler
+
+第五步：处理器适配器执⾏Handler
+
+第六步：Handler执⾏完成给处理器适配器返回ModelAndView
+
+第七步：处理器适配器向前端控制器返回 ModelAndView，ModelAndView 是SpringMVC 框架的⼀个
+
+底层对 象，包括 Model 和 View
+
+第⼋步：前端控制器请求视图解析器去进⾏视图解析，根据逻辑视图名来解析真正的视图。
+
+第九步：视图解析器向前端控制器返回View
+
+第⼗步：前端控制器进⾏视图渲染，就是将模型数据（在 ModelAndView 对象中）填充到 request 域
+
+第⼗⼀步：前端控制器向⽤户响应结果
+
+### **2.2 Spring MVC** 九⼤组件
+
+HandlerMapping（处理器映射器）
+
+HandlerMapping 是⽤来查找 Handler 的，也就是处理器，具体的表现形式可以是类，也可以是⽅法。⽐如，标注了@RequestMapping的每个⽅法都可以看成是⼀个Handler。Handler负责具体实际的请求处理，在请求到达后，HandlerMapping 的作⽤便是找到请求相应的处理器Handler 和 Interceptor.
+
+HandlerAdapter（处理器适配器）
+
+HandlerAdapter 是⼀个适配器。因为 Spring MVC 中 Handler 可以是任意形式的，只要能处理请求即可。但是把请求交给 Servlet 的时候，由于 Servlet 的⽅法结构都是doService(HttpServletRequest req,HttpServletResponse resp)形式的，要让固定的 Servlet 处理⽅法调⽤ Handler 来进⾏处理，便是 HandlerAdapter 的职责。
+
+HandlerExceptionResolver
+
+HandlerExceptionResolver ⽤于处理 Handler 产⽣的异常情况。它的作⽤是根据异常设置ModelAndView，之后交给渲染⽅法进⾏渲染，渲染⽅法会将 ModelAndView 渲染成页⾯。
+
+ViewResolver
+
+ViewResolver即视图解析器，⽤于将String类型的视图名和Locale解析为View类型的视图，只有⼀个resolveViewName()⽅法。从⽅法的定义可以看出，Controller层返回的String类型视图名viewName 最终会在这⾥被解析成为View。View是⽤来渲染⻚⾯的，也就是说，它会将程序返回的参数和数据填⼊模板中，⽣成html⽂件。ViewResolver 在这个过程主要完成两件事情：ViewResolver 找到渲染所⽤的模板（第⼀件⼤事）和所⽤的技术（第⼆件⼤事，其实也就是找到视图的类型，如JSP）并填⼊参数。默认情况下，Spring MVC会⾃动为我们配置⼀个InternalResourceViewResolver,是针对 JSP 类型视图的。
+
+RequestToViewNameTranslator
+
+RequestToViewNameTranslator 组件的作⽤是从请求中获取 ViewName.因为 ViewResolver 根据ViewName 查找 View，但有的 Handler 处理完成之后,没有设置 View，也没有设置 ViewName，便要通过这个组件从请求中查找 ViewName。
+
+LocaleResolver
+
+ViewResolver 组件的 resolveViewName ⽅法需要两个参数，⼀个是视图名，⼀个是 Locale。LocaleResolver ⽤于从请求中解析出 Locale，⽐如中国 Locale 是 zh-CN，⽤来表示⼀个区域。这个组件也是 i18n 的基础。
+
+ThemeResolver
+
+ThemeResolver 组件是⽤来解析主题的。主题是样式、图⽚及它们所形成的显示效果的集合。Spring MVC 中⼀套主题对应⼀个 properties⽂件，⾥⾯存放着与当前主题相关的所有资源，如图⽚、CSS样式等。创建主题⾮常简单，只需准备好资源，然后新建⼀个“主题名.properties”并将资源设置进去，放在classpath下，之后便可以在⻚⾯中使⽤了。SpringMVC中与主题相关的类有ThemeResolver、ThemeSource和Theme。ThemeResolver负责从请求中解析出主题名，ThemeSource根据主题名找到具体的主题，其抽象也就是Theme，可以通过Theme来获取主题和具体的资源。
+
+MultipartResolver
+
+MultipartResolver ⽤于上传请求，通过将普通的请求包装成 MultipartHttpServletRequest 来实现。MultipartHttpServletRequest 可以通过 getFile() ⽅法 直接获得⽂件。如果上传多个⽂件，还可以调⽤ getFileMap()⽅法得到Map<FileName，File>这样的结构，MultipartResolver 的作⽤就是封装普通的请求，使其拥有⽂件上传的功能。
+
+FlashMapManager
+
+FlashMap ⽤于重定向时的参数传递，⽐如在处理⽤户订单时候，为了避免重复提交，可以处理完post请求之后重定向到⼀个get请求，这个get请求可以⽤来显示订单详情之类的信息。这样做虽然可以规避⽤户重新提交订单的问题，但是在这个⻚⾯上要显示订单的信息，这些数据从哪⾥来获得呢？因为重定向时么有传递参数这⼀功能的，如果不想把参数写进URL（不推荐），那么就可以通过FlashMap来传递。只需要在重定向之前将要传递的数据写⼊请求（可以通过ServletRequestAttributes.getRequest()⽅法获得）的属性OUTPUT_FLASH_MAP_ATTRIBUTE中，这样在重定向之后的Handler中Spring就会⾃动将其设置到Model中，在显示订单信息的页⾯上就可以直接从Model中获取数据。FlashMapManager 就是⽤来管理 FalshMap 的。
+
+## 第 **3** 节 对 **Restful** 风格请求⽀持
+
+rest风格请求是什么样的？
+
+springmvc对rest风格请求到底提供了怎样的⽀持
+
+是⼀个注解的使⽤@PathVariable，可以帮助我们从uri中取出参数
+
+### **3.1** 什么是 **RESTful**
+
+Restful 是⼀种 web 软件架构⻛格，它不是标准也不是协议，它倡导的是⼀个资源定位及资源操作的风格。
+
+什么是 **REST**：
+
+REST（英⽂：Representational State Transfer，简称 REST）描述了⼀个架构样式的⽹络系统， ⽐如web 应⽤程序。它⾸次出现在 2000 年 Roy Fielding 的博⼠论⽂中，他是 HTTP 规范的主要编写者之⼀。在⽬前主流的三种 Web 服务交互⽅案中，REST 相⽐于 SOAP（Simple Object Access protocol，简单对象访问协议）以及 XML-RPC 更加简单明了，⽆论是对 URL 的处理还是对 Payload 的编码，REST 都倾向于⽤更加简单轻量的⽅法设计和实现。值得注意的是 REST 并没有⼀个明确的标准，⽽更像是⼀种设计的风格。
+
+它本身并没有什么实⽤性，其核⼼价值在于如何设计出符合 REST 风格的⽹络接⼝。
+
+资源 表现层 状态转移
+
+**Restful** 的优点
+
+它结构清晰、符合标准、易于理解、扩展⽅便，所以正得到越来越多⽹站的采⽤。
+
+**Restful** 的特性
+
+资源（Resources）：⽹络上的⼀个实体，或者说是⽹络上的⼀个具体信息。
+
+它可以是⼀段⽂本、⼀张图⽚、⼀⾸歌曲、⼀种服务，总之就是⼀个具体的存在。可以⽤⼀个 URI（统⼀资源定位符）指向它，每种资源对应⼀个特定的 URI 。要获取这个资源，访问它的 URI 就可以，因此URI 即为每⼀个资源的独⼀⽆⼆的识别符。
+
+表现层（Representation）：把资源具体呈现出来的形式，叫做它的表现层 （Representation）。⽐如，⽂本可以⽤ txt 格式表现，也可以⽤ HTML 格式、XML 格式、JSON 格式表现，甚⾄可以采⽤⼆进制格式。
+
+状态转化（State Transfer）：每发出⼀个请求，就代表了客户端和服务器的⼀次交互过程。
+
+HTTP 协议，是⼀个⽆状态协议，即所有的状态都保存在服务器端。因此，如果客户端想要操作服务器， 必须通过某种⼿段，让服务器端发⽣“状态转化”（State Transfer）。⽽这种转化是建⽴在表现层之上的，所以就是 “ 表现层状态转化” 。具体说， 就是 HTTP 协议⾥⾯，四个表示操作⽅式的动词：GET 、POST 、PUT 、DELETE 。它们分别对应四种基本操作：GET ⽤来获取资源，POST ⽤来新建资源，PUT ⽤来更新资源，DELETE ⽤来删除资源。
+
+**RESTful** 的示例：rest是⼀个url请求的风格，基于这种风格设计请求的url
+
+没有rest的话，原有的url设计
+
+http://localhost:8080/user/queryUserById.action?id=3
+
+url中定义了动作（操作），参数具体锁定到操作的是谁
+
+有了rest风格之后
+
+rest中，认为互联⽹中的所有东⻄都是资源，既然是资源就会有⼀个唯⼀的uri标识它，代表它http://localhost:8080/user/3 代表的是id为3的那个⽤户记录（资源）
+
+锁定资源之后如何操作它呢？常规操作就是增删改查
+
+根据请求⽅式不同，代表要做不同的操作
+
+get 查询，获取资源
+
+post 增加，新建资源
+
+put 更新
+
+delete 删除资源
+
+rest风格带来的直观体现：就是传递参数⽅式的变化，参数可以在uri中了
+
+/account/1 HTTP GET ：得到 id = 1 的 account
+
+/account/1 HTTP DELETE：删除 id = 1 的 account
+
+/account/1 HTTP PUT：更新 id = 1 的 account
+
+URL：资源定位符，通过URL地址去定位互联⽹中的资源（抽象的概念，⽐如图⽚、视频、app服务
+
+等）。
+
+**RESTful** 风格 **URL**：互联⽹所有的事物都是资源，要求URL中只有表示资源的名称，没有动词。
+
+**RESTful**风格资源操作：使⽤HTTP请求中的method⽅法put、delete、**post**、**get**来操作资源。分别对应添加、删除、修改、查询。不过⼀般使⽤时还是 post 和 get。put 和 delete⼏乎不使⽤。
+
+**RESTful** 风格资源表述：可以根据需求对URL定位的资源返回不同的表述（也就是返回数据类型，⽐如XML、JSON等数据格式）。
+
+Spring MVC ⽀持 RESTful 风格请求，具体讲的就是使⽤ @PathVariable 注解获取 RESTful 风格的请求URL中的路径变量。
+
+## 第 **5** 节 **Ajax Json**交互
+
+交互：两个⽅向
+
+1）前端到后台：前端ajax发送json格式字符串，后台直接接收为pojo参数，使⽤注解@RequstBody
+
+2）后台到前端：后台直接返回pojo对象，前端直接接收为json对象或者字符串，使⽤注解
+
+@ResponseBody
+
+### **5.1** 什么是 **Json**
+
+Json是⼀种与语⾔⽆关的数据交互格式，就是⼀种字符串，只是⽤特殊符号{}内表示对象、[]内表示数
+
+组、""内是属性或值、：表示后者是前者的值
+
+{"name": "Michael"}可以理解为是⼀个包含name为Michael的对象
+
+[{"name": "Michael"},{"name": "Jerry"}]就表示包含两个对象的数组
+
+### **5.2 @ResponseBody**注解
+
+@responseBody注解的作⽤是将controller的⽅法返回的对象通过适当的转换器转换为指定的格式之
+
+后，写⼊到response对象的body区，通常⽤来返回JSON数据或者是XML数据。 注意：在使⽤此注解之
+
+后不会再⾛视图处理器，⽽是直接将数据写⼊到输⼊流中，他的效果等同于通过response对象输出指定
+
+格式的数据。
+
+## **Spring MVC** ⾼级技术
+
+### 第 **1** 节 拦截器**(Inteceptor)**使⽤
+
+#### **1.1** 监听器、过滤器和拦截器对⽐
+
+- Servlet：处理Request请求和Response响应
+
+- 过滤器（Filter）：对Request请求起到过滤的作⽤，作⽤在Servlet之前，如果配置为/*可以对所有的资源访问（servlet、js/css静态资源等）进⾏过滤处理
+
+- 监听器（Listener）：实现了javax.servlet.ServletContextListener 接⼝的服务器端组件，它随Web应⽤的启动⽽启动，只初始化⼀次，然后会⼀直运⾏监视，随Web应⽤的停⽌⽽销毁
+  - 作⽤⼀：做⼀些初始化⼯作，web应⽤中spring容器启动ContextLoaderListener
+  - 作⽤⼆：监听web中的特定事件，⽐如HttpSession,ServletRequest的创建和销毁；变量的创建、销毁和修改等。可以在某些动作前后增加处理，实现监控，⽐如统计在线⼈数，利⽤HttpSessionLisener等。
+
+- 拦截器（Interceptor）：是SpringMVC、Struts等表现层框架⾃⼰的，不会拦截jsp/html/css/image的访问等，只会拦截访问的控制器⽅法（Handler）。
+
+  从配置的⻆度也能够总结发现：serlvet、fifilter、listener是配置在web.xml中的，⽽interceptor是配置在表现层框架⾃⼰的配置⽂件中的
+
+  在Handler业务逻辑执⾏之前拦截⼀次
+
+  在Handler逻辑执⾏完毕但未跳转⻚⾯之前拦截⼀次
+
+  在跳转页⾯之后拦截⼀次
+
+#### **1.2** 拦截器的执⾏流程
+
+在运⾏程序时，拦截器的执⾏是有⼀定顺序的，该顺序与配置⽂件中所定义的拦截器的顺序相关。 单个拦截器，在程序中的执⾏流程如下图所示：
+
+1）程序先执⾏preHandle()⽅法，如果该⽅法的返回值为true，则程序会继续向下执⾏处理器中的⽅法，否则将不再向下执⾏。
+
+2）在业务处理器（即控制器Controller类）处理完请求后，会执⾏postHandle()⽅法，然后会通过DispatcherServlet向客户端返回响应。
+
+3）在DispatcherServlet处理完请求后，才会执⾏afterCompletion()⽅法。
+
+#### **1.3** 多个拦截器的执⾏流程
+
+多个拦截器（假设有两个拦截器Interceptor1和Interceptor2，并且在配置⽂件中， Interceptor1拦截器配置在前），在程序中的执⾏流程如下图所示：从图可以看出，当有多个拦截器同时⼯作时，它们的preHandle()⽅法会按照配置⽂件中拦截器的配置顺序执⾏，⽽它们的postHandle()⽅法和afterCompletion()⽅法则会按照配置顺序的反序执⾏。
 
 
-# 计算机网络
+
+### 第 **3** 节 在控制器中处理异常
+
+```java
+package com.lagou.edu.controller;
+
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.ModelAndView;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;// 可以让我们优雅的捕获所有Controller对象handler⽅法抛出的异常
+
+@ControllerAdvice
+public class GlobalExceptionResolver {
+	@ExceptionHandler(ArithmeticException.class)
+	public ModelAndView handleException(ArithmeticException exception,HttpServletResponse response) {
+		ModelAndView modelAndView = new ModelAndView();
+    modelAndView.addObject("msg",exception.getMessage());
+    modelAndView.setViewName("error");
+    return modelAndView;
+  }
+} 
+```
+
+### 第 **4** 节 基于**Flash**属性的跨重定向请求数据传递
+
+重定向时请求参数会丢失，我们往往需要重新携带请求参数，我们可以进⾏⼿动参数拼接如下：
+
+```java
+return "redirect:handle01?name=" + name;
+```
+
+但是上述拼接参数的⽅法属于get请求，携带参数⻓度有限制，参数安全性也不⾼，此时，我们可以使⽤SpringMVC提供的flflash属性机制，向上下⽂中添加flflash属性，框架会在session中记录该属性值，当跳转到页⾯之后框架会⾃动删除flflash属性，不需要我们⼿动删除，通过这种⽅式进⾏重定向参数传递，参数长度和安全性都得到了保障，如下：
+
+```java
+/**
+* SpringMVC 重定向时参数传递的问题
+* 转发：A 找 B 借钱400，B没有钱但是悄悄的找到C借了400块钱给A
+* url不会变,参数也不会丢失,⼀个请求
+* 重定向：A 找 B 借钱400，B 说我没有钱，你找别⼈借去，那么A ⼜带着400块的借钱需求找到C
+* url会变,参数会丢失需要重新携带参数,两个请求
+*/
+@RequestMapping("/handleRedirect")
+public String handleRedirect(String name,RedirectAttributes redirectAttributes) {
+	//return "redirect:handle01?name=" + name; // 拼接参数安全性、参数⻓度都有局限
+  // addFlashAttribute⽅法设置了⼀个flash类型属性，该属性会被暂存到session中，在跳转到⻚⾯之后该属性销毁
+  redirectAttributes.addFlashAttribute("name",name);
+  return "redirect:handle01";
+}
+```
+
+问题
+
+拦截器与过滤器的区别
+
+​		①拦截器是基于java的反射机制的，而过滤器是基于函数回调。
+　　②拦截器不依赖与servlet容器，过滤器依赖与servlet容器。
+　　③拦截器只能对action请求起作用，而过滤器则可以对几乎所有的请求起作用。
+　　④拦截器可以访问action上下文、值栈里的对象，而过滤器不能访问。
+　　⑤在action的生命周期中，拦截器可以多次被调用，而过滤器只能在容器初始化时被调用一次。
+　　⑥拦截器可以获取IOC容器中的各个bean，而过滤器就不行，拦截器里可以注入一个service，可以调用业务逻辑。
+
+# **计算机网络**
 
 ## 1. 计算机网络概述
 
@@ -197,13 +540,6 @@
 11. 以太网的适配器具有过滤功能，它只接收单播帧，广播帧和多播帧。
 12. 使用集线器可以在物理层扩展以太网（扩展后的以太网仍然是一个网络）
 
-### 3.3. 补充
-
-1. 数据链路层的点对点信道和广播信道的特点，以及这两种信道所使用的协议（PPP 协议以及 CSMA/CD 协议）的特点
-2. 数据链路层的三个基本问题：**封装成帧**，**透明传输**，**差错检测**
-3. 以太网的 MAC 层硬件地址
-4. 适配器，转发器，集线器，网桥，以太网交换机的作用以及适用场合
-
 ## 4. 网络层（Network Layer）
 
 ![68747470733a2f2f696d672d626c6f672e6373646e696d672e636e2f696d675f636f6e766572742f66626637386264636633646231313532366163316132333461386239383233342e706e67](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/2021.11.06/68747470733a2f2f696d672d626c6f672e6373646e696d672e636e2f696d675f636f6e766572742f66626637386264636633646231313532366163316132333461386239383233342e706e67.png)
@@ -363,6 +699,8 @@
 ![68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f323031392f372f2545342542412539342545352542312538322545342542442539332545372542332542422545372542422539332545362539452538342e706e67](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/2021.11.06/image/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f323031392f372f2545342542412539342545352542312538322545342542442539332545372542332542422545372542422539332545362539452538342e706e67.png)
 
 结合互联网的情况，自上而下地，非常简要的介绍一下各层的作用。
+
+以TCP/IP协议模型的计算机网络率先出现，硬件接口实现“物理层”、“数据链路层”，操作系统内核里的TCP/IP协议栈实现“网络层”、“传输层”，所有依赖于TCP/IP协议栈的应用程序实现广泛意义上的“应用层”，这个广泛意义的“应用层”既实现了会话ID、心跳keepalive，又实现了诸如文字、图片、音频、视频、文件的不同表示。后来才有以TCP/IP为现实素材的OSI七层参考模型，希望将“会话层”、“表示层”从广泛意义上的应用层里独立出来，这样可以让应用程序瘦身，核心目标是：让千千万万不同应用程序共享“会话层”、“表示层”软件代码。很遗憾的是，迄今为止这个美好的愿望依然没有实现，究其根本原因是，不同的应用程序有大同小异的会话、表示需求，这些代码不完全能够抽象到独立的会话层、表示层，或者说，现有的应用层已经比较完美实现了会话层、表示层，对于七层模型需求没有动力。
 
 #### 1.1 应用层
 
@@ -535,7 +873,23 @@ TCP 提供面向连接的服务。在传送数据之前必须先建立连接，�
 TCP 的拥塞控制采用了四种算法，即 **慢开始** 、 **拥塞避免** 、**快重传** 和 **快恢复**。在网络层也可以使路由器采用适当的分组丢弃策略（如主动队列管理 AQM），以减少网络拥塞的发生。
 
 - **慢开始：** 慢开始算法的思路是当主机开始发送数据时，如果立即把大量数据字节注入到网络，那么可能会引起网络阻塞，因为现在还不知道网络的符合情况。经验表明，较好的方法是先探测一下，即由小到大逐渐增大发送窗口，也就是由小到大逐渐增大拥塞窗口数值。cwnd 初始值为 1，每经过一个传播轮次，cwnd 加倍。
-- **拥塞避免：** 拥塞避免算法的思路是让拥塞窗口 cwnd 缓慢增大，即每经过一个往返时间 RTT 就把发送放的 cwnd 加 1.
+
+  ![image-20211106192038585](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/2021.11.06/image/image-20211106192038585.png)
+
+  我们已经知道，拥塞窗口 cwnd 每经过一个传输轮次，拥塞窗口 cwnd 就加倍。如果拥塞窗口增长速率过大，也会带了网络拥塞。为了解决这个问题，还需要设置一个慢开始门限 ssthresh。
+
+  慢开始门限 ssthresh 规则如下：
+
+  - 当cwnd < ssthresh时，使用上述的慢开始算法。
+  - 当cwnd > ssthresh时，停止使用慢开始算法而改用拥塞避免算法。
+  - 当cwnd = ssthresh时，既可使用慢开始算法，也可使用拥塞避免算法。
+
+- **拥塞避免：** 拥塞避免算法的思路是让拥塞窗口 cwnd 缓慢增大，即每经过一个往返时间 RTT 就把发送放的 cwnd 加 1.当**拥塞**窗口值大于**慢开始**门限时，停止使用**慢开始**算法而改用**拥塞避免**算法。 
+
+  ![image-20211106192108196](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/2021.11.06/image/image-20211106192108196.png)
+
+  无论在慢开始阶段还是在拥塞避免阶段，只要发送方判断网络出现拥塞（其根据就是没有按时收到确认），就要把慢开始门限 ssthresh 设置为出现拥塞时的发送方窗口值的一半（但不能小于2）。然后把拥塞窗口 cwnd 重新设置为 1，执行慢开始算法。
+
 - **快重传与快恢复：** 在 TCP/IP 中，快速重传和恢复（fast retransmit and recovery，FRR）是一种拥塞控制算法，它能快速恢复丢失的数据包。没有 FRR，如果数据包丢失了，TCP 将会使用定时器来要求传输暂停。在暂停的这段时间内，没有新的或复制的数据包被发送。有了 FRR，如果接收机接收到一个不按顺序的数据段，它会立即给发送机发送一个重复确认。如果发送机接收到三个重复确认，它会假定确认件指出的数据段丢失了，并立即重传这些丢失的数据段。有了 FRR，就不会因为重传时要求的暂停被耽误。 　当有单独的数据包丢失时，快速重传和恢复（FRR）能最有效地工作。当有多个数据信息包在某一段很短的时间内丢失时，它则不能很有效地工作。
 
 ### 7.5 在浏览器中输入 url 地址 ->> 显示主页的过程
