@@ -1145,9 +1145,7 @@ Redis不支持事务回滚（为什么呢）
 
 ### 2.4 **Lua脚本**
 
-lua是一种轻量小巧的**脚本语言**，用标准**C****语言**编写并以源代码形式开放， 其设计目的是为了嵌入应用
-
-程序中，从而为应用程序提供灵活的扩展和定制功能。
+lua是一种轻量小巧的**脚本语言**，用标准**C****语言**编写并以源代码形式开放， 其设计目的是为了嵌入应用程序中，从而为应用程序提供灵活的扩展和定制功能。
 
 Lua应用场景：游戏开发、独立应用脚本、Web应用脚本、扩展和数据库插件。
 
@@ -1155,41 +1153,21 @@ nginx上使用lua 实现高并发
 
 OpenRestry：一个可伸缩的基于Nginx的Web平台，是在nginx之上集成了lua模块的第三方服务器
 
-OpenRestry是一个通过Lua扩展Nginx实现的可伸缩的Web平台，内部集成了大量精良的Lua库、第三
+OpenRestry是一个通过Lua扩展Nginx实现的可伸缩的Web平台，内部集成了大量精良的Lua库、第三方模块以及大多数的依赖项。
 
-方模块以及大多数的依赖项。
-
-用于方便地搭建能够处理超高并发（日活千万级别）、扩展性极高的动态Web应用、Web服务和动态网
-
-关。
+用于方便地搭建能够处理超高并发（日活千万级别）、扩展性极高的动态Web应用、Web服务和动态网关。
 
 功能和nginx类似，就是由于支持lua动态脚本，所以更加灵活。
 
-OpenRestry通过Lua脚本扩展nginx功能，可提供负载均衡、请求路由、安全认证、服务鉴权、流量控
-
-制与日志监控等服务。
+OpenRestry通过Lua脚本扩展nginx功能，可提供负载均衡、请求路由、安全认证、服务鉴权、流量控制与日志监控等服务。
 
 类似的还有Kong（Api Gateway）、tengine（阿里）
 
-**创建并修改****lua****环境**
 
-下载
 
-地址：http://www.lua.org/download.html
+**Lua环境协作组件**
 
-可以本地下载上传到linux，也可以使用curl命令在linux系统中进行在线下载
-
-curl -R -O http://www.lua.org/ftp/lua-5.3.5.tar.gz
-
-安装如果报错，说找不到readline/readline.h, 可以通过yum命令安装
-
-安装完以后再
-
-最后，直接输入 lua命令即可进入lua的控制台
-
-**Lua****环境协作组件**
-
-从Redis2.6.0版本开始，通过**内置的****lua****编译****/****解释器**，可以使用EVAL命令对lua脚本进行求值。
+从Redis2.6.0版本开始，通过**内置的lua编译/解释器**，可以使用EVAL命令对lua脚本进行求值。
 
 脚本的命令是原子的，RedisServer在执行脚本命令中，不允许插入新的命令
 
@@ -1197,31 +1175,31 @@ curl -R -O http://www.lua.org/ftp/lua-5.3.5.tar.gz
 
 行
 
-**EVAL/EVALSHA****命令实现**
+**EVAL/EVALSHA命令实现**
 
-**EVAL****命令**
+**EVAL命令**
 
 通过执行redis的eval命令，可以运行一段lua脚本。
 
 命令说明：
 
-**script****参数：**是一段Lua脚本程序，它会被运行在Redis服务器上下文中，这段脚本不必(也不应该)
+**script参数：**是一段Lua脚本程序，它会被运行在Redis服务器上下文中，这段脚本不必(也不应该)
 
 定义为一个Lua函数。
 
-**numkeys****参数：**用于指定键名参数的个数。
+**numkeys参数：**用于指定键名参数的个数。
 
-**key [key ...]****参数：** 从EVAL的第三个参数开始算起，使用了numkeys个键（key），表示在脚本中
+**key [key ...]参数：** 从EVAL的第三个参数开始算起，使用了numkeys个键（key），表示在脚本中
 
 所用到的那些Redis键(key)，这些键名参数可以在Lua中通过全局变量**KEYS**数组，用1为基址的形
 
 式访问( KEYS[1] ， KEYS[2] ，以此类推)。
 
-**arg [arg ...]****参数：**可以在Lua中通过全局变量**ARGV**数组访问，访问的形式和KEYS变量类似(
+**arg [arg ...]参数：**可以在Lua中通过全局变量**ARGV**数组访问，访问的形式和KEYS变量类似(
 
 ARGV[1] 、 ARGV[2] ，诸如此类)。
 
-**lua****脚本中调用****Redis****命令**
+**lua脚本中调用Redis命令**
 
 yum -y install readline-devel ncurses-devel 
 
@@ -1245,7 +1223,7 @@ eval "return {KEYS[1],KEYS[2],ARGV[1],ARGV[2]}" 2 key1 key2 first secondredis.ca
 
 如果出错，则返回错误信息，不继续执行
 
-**redis.pcall()****：**
+**redis.pcall()：**
 
 返回值就是redis命令执行的返回值
 
@@ -1259,15 +1237,11 @@ eval "return {KEYS[1],KEYS[2],ARGV[1],ARGV[2]}" 2 key1 key2 first secondredis.ca
 
 EVAL 命令要求你在每次执行脚本的时候都发送一次脚本主体(script body)。
 
-Redis 有一个内部的缓存机制，因此它不会每次都重新编译脚本，不过在很多场合，付出无谓的带宽来
+Redis 有一个内部的缓存机制，因此它不会每次都重新编译脚本，不过在很多场合，付出无谓的带宽来传送脚本主体并不是最佳选择。
 
-传送脚本主体并不是最佳选择。
+为了减少带宽的消耗， Redis 实现了 EVALSHA 命令，它的作用和 EVAL 一样，都用于对脚本求值，但它接受的第一个参数不是脚本，而是脚本的 SHA1 校验和(sum)
 
-为了减少带宽的消耗， Redis 实现了 EVALSHA 命令，它的作用和 EVAL 一样，都用于对脚本求值，但
-
-它接受的第一个参数不是脚本，而是脚本的 SHA1 校验和(sum)
-
-**SCRIPT****命令**
+**SCRIPT命令**
 
 **SCRIPT FLUSH** **：**清除所有脚本缓存
 
@@ -1345,21 +1319,15 @@ zhaoyun1 zhaoyun2
 
 **命令传播模式**
 
-处于命令传播模式的主服务器会将执行脚本产生的所有写命令用事务包裹起来，然后将事务复制到 AOF
+处于命令传播模式的主服务器会将执行脚本产生的所有写命令用事务包裹起来，然后将事务复制到 AOF文件以及从服务器里面。
 
-文件以及从服务器里面。
-
-因为命令传播模式复制的是写命令而不是脚本本身，所以即使脚本本身包含时间、内部状态、随机函数
-
-等，主服务器给所有从服务器复制的写命令仍然是相同的。
+因为命令传播模式复制的是写命令而不是脚本本身，所以即使脚本本身包含时间、内部状态、随机函数等，主服务器给所有从服务器复制的写命令仍然是相同的。
 
 为了开启命令传播模式，用户在使用脚本执行任何写操作之前，需要先在脚本里面调用以下函数：
 
 redis.replicate_commands() 
 
-redis.replicate_commands() 只对调用该函数的脚本有效：在使用命令传播模式执行完当前脚本之后，
-
-服务器将自动切换回默认的脚本传播模式。
+redis.replicate_commands() 只对调用该函数的脚本有效：在使用命令传播模式执行完当前脚本之后，服务器将自动切换回默认的脚本传播模式。
 
 如果我们在主服务器执行以下命令：那么主服务器将向从服务器复制以下命令：
 
@@ -1369,11 +1337,7 @@ redis.replicate_commands() 只对调用该函数的脚本有效：在使用命�
 
 管道无原子性，命令都是独立的，属于无状态的操作
 
-事务和脚本是有原子性的，其区别在于脚本可借助Lua语言可在服务器端存储的便利性定制和简化操作
-
-脚本的原子性要强于事务，脚本执行期间，另外的客户端 其它任何脚本或者命令都无法执行，脚本的执
-
-行时间应该尽量短，不能太耗时的脚本
+事务和脚本是有原子性的，其区别在于脚本可借助Lua语言可在服务器端存储的便利性定制和简化操作脚本的原子性要强于事务，脚本执行期间，另外的客户端 其它任何脚本或者命令都无法执行，脚本的执行时间应该尽量短，不能太耗时的脚本
 
 ### 2.5 **慢查询日志**
 
@@ -1787,33 +1751,22 @@ redis_exporter为Prometheus提供了redis指标的导出，配合Prometheus以�
 
 /*src/redis.c/call*/ 
 
+```c
 /* Call() is the core of Redis execution of a command */ 
-
 void call(redisClient *c, int flags) { 
-
-long long dirty, start = ustime(), duration; 
-
-int client_old_flags = c->flags; 
-
-/* Sent the command to clients in MONITOR mode, only if the commands are 
-
-\* not generated from reading an AOF. */ 
-
-if (listLength(server.monitors) && 
-
-!server.loading && 
-
-!(c->cmd->flags & REDIS_CMD_SKIP_MONITOR)) 
-
-{
-
-replicationFeedMonitors(c,server.monitors,c->db->id,c->argv,c->argc); 
-
-}
-
+	long long dirty, start = ustime(), duration; 
+	int client_old_flags = c->flags; 
+	/* Sent the command to clients in MONITOR mode, only if the commands are not generated from reading an AOF. */ 
+	if (listLength(server.monitors) && 
+      !server.loading && 
+      !(c->cmd->flags & REDIS_CMD_SKIP_MONITOR)) {
+    replicationFeedMonitors(c,server.monitors,c->db->id,c->argv,c->argc); 
+  }
 ...... 
+}
+```
 
-}**为什么要持久化**
+**为什么要持久化**
 
 Redis是内存数据库，宕机后数据会消失。
 
@@ -1999,7 +1952,7 @@ Redis 将所有对数据库进行过**写入的命令（及其参数）**（RESP
 
 AOF会记录过程，RDB只管结果
 
-**AOF****持久化实现**
+**AOF持久化实现**
 
 配置 redis.conf
 
@@ -2085,9 +2038,7 @@ AOF 功能被关闭
 
 **每一秒钟保存一次（推荐）**
 
-在这种模式中， SAVE 原则上每隔一秒钟就会执行一次， 因为 SAVE 操作是由后台子线程（fork）调用
-
-的， 所以它不会引起服务器主进程阻塞。
+在这种模式中， SAVE 原则上每隔一秒钟就会执行一次， 因为 SAVE 操作是由后台子线程（fork）调用的， 所以它不会引起服务器主进程阻塞。
 
 **每执行一个命令保存一次**
 
@@ -2103,11 +2054,7 @@ AOF 保存模式对性能和安全性的影响
 
 AOF记录数据的变化过程，越来越大，需要重写“瘦身”
 
-Redis可以在 AOF体积变得过大时，自动地在后台（Fork子进程）对 AOF进行重写。重写后的新 AOF文
-
-件包含了恢复当前数据集所需的最小命令集合。 所谓的“重写”其实是一个有歧义的词语， 实际上，
-
-AOF 重写并不需要对原有的 AOF 文件进行任何写入和读取， 它针对的是数据库中键的当前值。
+Redis可以在 AOF体积变得过大时，自动地在后台（Fork子进程）对 AOF进行重写。重写后的新 AOF文件包含了恢复当前数据集所需的最小命令集合。 所谓的“重写”其实是一个有歧义的词语， 实际上，AOF 重写并不需要对原有的 AOF 文件进行任何写入和读取， 它针对的是数据库中键的当前值。
 
 举例如下：
 
@@ -2137,33 +2084,19 @@ lpush list1 4 5 6 -------- > list1 1 2 3 4 5 6
 
 lpush list1 1 2 3 4 5 6
 
-Redis 不希望 AOF 重写造成服务器无法处理请求， 所以 Redis 决定将 AOF 重写程序放到（后台）子进
-
-程里执行， 这样处理的最大好处是：
+Redis 不希望 AOF 重写造成服务器无法处理请求， 所以 Redis 决定将 AOF 重写程序放到（后台）子进程里执行， 这样处理的最大好处是：
 
 1、子进程进行 AOF 重写期间，主进程可以继续处理命令请求。
 
-2、子进程带有主进程的数据副本，使用子进程而不是线程，可以在避免锁的情况下，保证数据的安全
-
-性。不过， 使用子进程也有一个问题需要解决： 因为子进程在进行 AOF 重写期间， 主进程还需要继续处理
-
-命令， 而新的命令可能对现有的数据进行修改， 这会让当前数据库的数据和重写后的 AOF 文件中的数
-
-据不一致。
+2、子进程带有主进程的数据副本，使用子进程而不是线程，可以在避免锁的情况下，保证数据的安全性。不过， 使用子进程也有一个问题需要解决： 因为子进程在进行 AOF 重写期间， 主进程还需要继续处理命令， 而新的命令可能对现有的数据进行修改， 这会让当前数据库的数据和重写后的 AOF 文件中的数据不一致。
 
 为了解决这个问题， Redis 增加了一个 AOF 重写缓存， 这个缓存在 fork 出子进程之后开始启用，
 
-Redis 主进程在接到新的写命令之后， 除了会将这个写命令的协议内容追加到现有的 AOF 文件之外，
-
-还会追加到这个缓存中。
+Redis 主进程在接到新的写命令之后， 除了会将这个写命令的协议内容追加到现有的 AOF 文件之外，还会追加到这个缓存中。
 
 **重写过程分析（整个重写操作是绝对安全的）：**
 
- Redis 在创建新 AOF 文件的过程中，会继续将命令追加到现有的 AOF 文件里面，即使重写过程中发生
-
-停机，现有的 AOF 文件也不会丢失。 而一旦新 AOF 文件创建完毕，Redis 就会从旧 AOF 文件切换到
-
-新 AOF 文件，并开始对新 AOF 文件进行追加操作。
+ Redis 在创建新 AOF 文件的过程中，会继续将命令追加到现有的 AOF 文件里面，即使重写过程中发生停机，现有的 AOF 文件也不会丢失。 而一旦新 AOF 文件创建完毕，Redis 就会从旧 AOF 文件切换到新 AOF 文件，并开始对新 AOF 文件进行追加操作。
 
 当子进程在执行 AOF 重写时， 主进程需要执行以下三个工作：
 
@@ -2179,9 +2112,7 @@ Redis 主进程在接到新的写命令之后， 除了会将这个写命令的�
 
 所有对数据库进行修改的命令都会被记录到 AOF 重写缓存中。
 
-当子进程完成 AOF 重写之后， 它会向父进程发送一个完成信号， 父进程在接到完成信号之后， 会调用
-
-一个信号处理函数， 并完成以下工作：
+当子进程完成 AOF 重写之后， 它会向父进程发送一个完成信号， 父进程在接到完成信号之后， 会调用一个信号处理函数， 并完成以下工作：
 
 将 AOF 重写缓存中的内容全部写入到新 AOF 文件中。
 
@@ -2193,9 +2124,7 @@ Redis数据库里的+AOF重写过程中的命令------->新的AOF文件---->覆�
 
 当步骤 2 执行完毕之后， 程序就完成了新旧两个 AOF 文件的交替。这个信号处理函数执行完毕之后， 主进程就可以继续像往常一样接受命令请求了。 在整个 AOF 后台重
 
-写过程中， 只有最后的写入缓存和改名操作会造成主进程阻塞， 在其他时候， AOF 后台重写都不会对
-
-主进程造成阻塞， 这将 AOF 重写对性能造成的影响降到了最低。
+写过程中， 只有最后的写入缓存和改名操作会造成主进程阻塞， 在其他时候， AOF 后台重写都不会对主进程造成阻塞， 这将 AOF 重写对性能造成的影响降到了最低。
 
 以上就是 AOF 后台重写， 也即是 BGREWRITEAOF 命令(AOF重写)的工作原理。
 
@@ -2265,13 +2194,9 @@ Redis读取AOF文件并还原数据库状态的详细步骤如下：
 
 2、RDB性能高、AOF性能较低
 
-3、RDB在配置触发状态会丢失最后一次快照以后更改的所有数据，AOF设置为每秒保存一次，则最多
+3、RDB在配置触发状态会丢失最后一次快照以后更改的所有数据，AOF设置为每秒保存一次，则最多丢2秒的数据
 
-丢2秒的数据
-
-4、Redis以主服务器模式运行，RDB不会保存过期键值对数据，Redis以从服务器模式运行，RDB会保
-
-存过期键值对，当主服务器向从服务器同步时，再清空过期键值对。
+4、Redis以主服务器模式运行，RDB不会保存过期键值对数据，Redis以从服务器模式运行，RDB会保存过期键值对，当主服务器向从服务器同步时，再清空过期键值对。
 
 AOF写入文件时，对过期的key会追加一条del命令，当执行AOF重写时，会忽略过期key和del命令。**应用场景**
 
@@ -2433,21 +2358,21 @@ buf[] 的长度=len+free+1
 
 SDS的优势：
 
-1、SDS 在 C 字符串的基础上加入了 free 和 len 字段，获取字符串长度：SDS 是 O(1)，C 字符串是O(n)。buf数组的长度=free+len+1
+1、SDS 在 C 字符串的基础上加入了 free 和 len 字段，获取字符串长度：SDS 是 O(1)，C 字符串是O(n)。
+
+buf数组的长度=free+len+1
 
 2、 SDS 由于记录了长度，在可能造成缓冲区溢出时会自动重新分配内存，杜绝了缓冲区溢出。
 
 3、可以存取二进制数据，以字符串长度len来作为结束标识
 
-C： \0 空字符串 二进制数据包括空字符串，所以没有办法存取二进制数据
+​	C： \0 空字符串 二进制数据包括空字符串，所以没有办法存取二进制数据
 
-SDS ： 非二进制 \0
+​	SDS ： 非二进制 \0
 
-二进制： 字符串长度 可以存二进制数据
+​	二进制： 字符串长度 可以存二进制数据
 
-使用场景：
-
-SDS的主要应用在：存储字符串和整型数据、存储key、AOF缓冲区和用户输入缓冲。
+使用场景：SDS的主要应用在：存储字符串和整型数据、存储key、AOF缓冲区和用户输入缓冲。
 
 ###### **跳跃表（重点）**
 
@@ -2505,51 +2430,20 @@ SDS的主要应用在：存储字符串和整型数据、存储key、AOF缓冲�
 
 完整的跳跃表结构体：
 
-//跳跃表节点 
-
-typedef struct zskiplistNode { 
-
-sds ele; /* 存储字符串类型数据 redis3.0版本中使用robj类型表示， 
-
-但是在redis4.0.1中直接使用sds类型表示 */ 
-
-double score;//存储排序的分值 
-
-struct zskiplistNode *backward;//后退指针，指向当前节点最底层的前一个节点 
-
-/* 
-
-层，柔性数组，随机生成1-64的值 
-
-*/
-
-struct zskiplistLevel { 
-
-struct zskiplistNode *forward; //指向本层下一个节点 
-
-unsigned int span;//本层下个节点到本节点的元素个数 
-
-} level[]; 
-
-} zskiplistNode; 
-
-//链表 
-
-typedef struct zskiplist{ 
-
-//表头节点和表尾节点 
-
-structz skiplistNode *header, *tail; 
-
-//表中节点的数量 
-
-unsigned long length; 
-
-//表中层数最大的节点的层数 
-
-int level; 
-
-}zskiplist;
+```c
+/* Call() is the core of Redis execution of a command */ 
+void call(redisClient *c, int flags) { 
+	long long dirty, start = ustime(), duration; 
+	int client_old_flags = c->flags; 
+	/* Sent the command to clients in MONITOR mode, only if the commands are not generated from reading an AOF. */ 
+  if (listLength(server.monitors) && 
+      !server.loading && 
+      !(c->cmd->flags & REDIS_CMD_SKIP_MONITOR)) {
+    replicationFeedMonitors(c,server.monitors,c->db->id,c->argv,c->argc); 
+  }
+...... 
+}
+```
 
 跳跃表的优势：
 
@@ -2569,13 +2463,11 @@ Redis整个数据库是用字典来存储的。（K-V结构）
 
 **数组**
 
-数组：用来存储数据的容器，采用头指针+偏移量的方式能够以O(1)的时间复杂度定位到数据所在的内
+数组：用来存储数据的容器，采用头指针+偏移量的方式能够以O(1)的时间复杂度定位到数据所在的内存地址。
 
-存地址。
+Redis 海量存储快
 
-Redis 海量存储 快
-
-**Hash****函数**
+**Hash函数**
 
 Hash（散列），作用是把任意长度的输入通过散列算法转换成固定类型、固定长度的散列值。
 
@@ -2589,7 +2481,7 @@ Redis-Server : MurmurHash
 
 **数组下标**=hash(key)%数组容量(hash值%数组容量得到的余数)
 
-**Hash****冲突**
+**Hash冲突**
 
 不同的key经过计算后出现数组下标一致，称为Hash冲突。
 
@@ -2601,21 +2493,16 @@ Redis字典实现包括：字典(dict)、Hash表(dictht)、Hash表节点(dictEnt
 
 **Hash表** 
 
+```c
 typedef struct dictht { 
-
-dictEntry **table; // 哈希表数组 
-
-unsigned long size; // 哈希表数组的大小 
-
-unsigned long sizemask; // 用于映射位置的掩码，值永远等于(size-1) 
-
-unsigned long used; // 哈希表已有节点的数量,包含next单链表数据 
-
+  dictEntry **table; // 哈希表数组 
+	unsigned long size; // 哈希表数组的大小 
+	unsigned long sizemask; // 用于映射位置的掩码，值永远等于(size-1) 
+	unsigned long used; // 哈希表已有节点的数量,包含next单链表数据 
 } dictht; 
+```
 
-1、hash表的数组初始容量为4，随着k-v存储量的增加需要对hash表数组进行扩容，新扩容量为当前量
-
-的一倍，即4,8,16,32
+1、hash表的数组初始容量为4，随着k-v存储量的增加需要对hash表数组进行扩容，新扩容量为当前量的一倍，即4,8,16,32
 
 2、索引值=Hash值&掩码值（Hash值与Hash表容量取余）
 
@@ -2625,59 +2512,34 @@ v字段是个联合体，存储的是键值对中的值。
 
 next指向下一个哈希表节点，用于解决hash冲突
 
-**dict****字典**
+**dict字典**
 
+```c
 typedef struct dictEntry { 
-
-void *key; // 键 
-
-union { // 值v的类型可以是以下4种类型 
-
-void *val; 
-
-uint64_t u64; 
-
-int64_t s64; 
-
-double d; 
-
-} v; 
-
-struct dictEntry *next; // 指向下一个哈希表节点，形成单向链表 解决hash冲突 
-
+	void *key; // 键 
+	union { // 值v的类型可以是以下4种类型 
+	void *val; 
+	uint64_t u64; 
+	int64_t s64; 
+	double d; 
+	} v; 
+	struct dictEntry *next; // 指向下一个哈希表节点，形成单向链表 解决hash冲突 
 } dictEntry; 
 
 typedef struct dict { 
+	dictType *type; // 该字典对应的特定操作函数 
+	void *privdata; // 上述类型函数对应的可选参数 
+	dictht ht[2]; /* 两张哈希表，存储键值对数据，ht[0]为原生 哈希表， ht[1]为 rehash 哈希表 */ 
+	long rehashidx; /*rehash标识 当等于-1时表示没有在 rehash， 否则表示正在进行rehash操作，存储的值表示hash表 ht[0]的rehash进行到哪个索引值 (数组下标)*/ 
+	int iterators; // 当前运行的迭代器数量 
+} dict;
+```
 
-dictType *type; // 该字典对应的特定操作函数 
-
-void *privdata; // 上述类型函数对应的可选参数 
-
-dictht ht[2]; /* 两张哈希表，存储键值对数据，ht[0]为原生 
-
-哈希表， 
-
-ht[1]为 rehash 哈希表 */ 
-
-long rehashidx; /*rehash标识 当等于-1时表示没有在 
-
-rehash， 
-
-否则表示正在进行rehash操作，存储的值表示 
-
-hash表 ht[0]的rehash进行到哪个索引值 
-
-(数组下标)*/ 
-
-int iterators; // 当前运行的迭代器数量 
-
-} dict;type字段，指向dictType结构体，里边包括了对该字典操作的函数指针
+type字段，指向dictType结构体，里边包括了对该字典操作的函数指针
 
 Redis字典除了主数据库的K-V数据存储以外，还可以用于：散列表对象、哨兵模式中的主从节点管理等
 
-在不同的应用中，字典的形态都可能不同，dictType是为了实现各种形态的字典而抽象出来的操作函数
-
-（多态）。
+在不同的应用中，字典的形态都可能不同，dictType是为了实现各种形态的字典而抽象出来的操作函数（多态）。
 
 完整的Redis字典数据结构：
 
@@ -2687,45 +2549,34 @@ Redis字典除了主数据库的K-V数据存储以外，还可以用于：散列
 
 扩容流程：
 
+```c
 typedef struct dictType { 
+  // 计算哈希值的函数 
+  unsigned int (*hashFunction)(const void *key); 
+  // 复制键的函数 
+  void *(*keyDup)(void *privdata, const void *key); 
+  // 复制值的函数 
+  void *(*valDup)(void *privdata, const void *obj); 
+  // 比较键的函数 
+  int (*keyCompare)(void *privdata, const void *key1, const void *key2); 
+  // 销毁键的函数 
+  void (*keyDestructor)(void *privdata, void *key); 
+  // 销毁值的函数 
+  void (*valDestructor)(void *privdata, void *obj); 
+} dictType;
+```
 
-// 计算哈希值的函数 
+说明：
 
-unsigned int (*hashFunction)(const void *key); 
+1. 初次申请默认容量为4个dictEntry，非初次申请为当前hash表容量的一倍。
 
-// 复制键的函数 
+2. rehashidx=0表示要进行rehash操作。
 
-void *(*keyDup)(void *privdata, const void *key); 
+3. 新增加的数据在新的hash表h[1]
 
-// 复制值的函数 
+4. 修改、删除、查询在老hash表h[0]、新hash表h[1]中（rehash中）
 
-void *(*valDup)(void *privdata, const void *obj); 
-
-// 比较键的函数 
-
-int (*keyCompare)(void *privdata, const void *key1, const void *key2); 
-
-// 销毁键的函数 
-
-void (*keyDestructor)(void *privdata, void *key); 
-
-// 销毁值的函数 
-
-void (*valDestructor)(void *privdata, void *obj); 
-
-} dictType;说明：
-
-\1. 初次申请默认容量为4个dictEntry，非初次申请为当前hash表容量的一倍。
-
-\2. rehashidx=0表示要进行rehash操作。
-
-\3. 新增加的数据在新的hash表h[1]
-
-\4. 修改、删除、查询在老hash表h[0]、新hash表h[1]中（rehash中）
-
-\5. 将老的hash表h[0]的数据重新计算索引值后全部迁移到新的hash表h[1]中，这个过程称为
-
-rehash。
+5. 将老的hash表h[0]的数据重新计算索引值后全部迁移到新的hash表h[1]中，这个过程称为rehash。
 
 **渐进式****rehash**
 
@@ -2775,41 +2626,26 @@ ziplist结构体如下：
 
 sorted-set和hash元素个数少且是小整数或短字符串（直接使用）
 
+```c
 struct ziplist<T>{ 
-
-unsigned int zlbytes; // ziplist的长度字节数，包含头部、所有entry和zipend。 
-
-unsigned int zloffset; // 从ziplist的头指针到指向最后一个entry的偏移量，用于快速反 
-
-向查询
-
-unsigned short int zllength; // entry元素个数 
-
-T[] entry; // 元素值 
-
-unsigned char zlend; // ziplist结束符，值固定为0xFF 
-
+  unsigned int zlbytes; // ziplist的长度字节数，包含头部、所有entry和zipend。 
+  unsigned int zloffset; // 从ziplist的头指针到指向最后一个entry的偏移量，用于快速反 向查询
+  unsigned short int zllength; // entry元素个数 
+  T[] entry; // 元素值 
+  unsigned char zlend; // ziplist结束符，值固定为0xFF 
 }
-
 typedef struct zlentry { 
+  unsigned int prevrawlensize; //previous_entry_length字段的长度 
+  unsigned int prevrawlen; //previous_entry_length字段存储的内容 
+  unsigned int lensize; //encoding字段的长度 
+  unsigned int len; //数据内容长度 
+  unsigned int headersize; //当前元素的首部长度，即previous_entry_length字段 长度与 encoding字段长度之和。 
+  unsigned char encoding; //数据类型 
+  unsigned char *p; //当前元素首地址 
+} zlentry;
+```
 
-unsigned int prevrawlensize; //previous_entry_length字段的长度 
-
-unsigned int prevrawlen; //previous_entry_length字段存储的内容 
-
-unsigned int lensize; //encoding字段的长度 
-
-unsigned int len; //数据内容长度 
-
-unsigned int headersize; //当前元素的首部长度，即previous_entry_length字段 
-
-长度与 encoding字段长度之和。 
-
-unsigned char encoding; //数据类型 
-
-unsigned char *p; //当前元素首地址 
-
-} zlentry;list用快速链表(quicklist)数据结构存储，而快速链表是双向列表与压缩列表的组合。（间接使用）
+list用快速链表(quicklist)数据结构存储，而快速链表是双向列表与压缩列表的组合。（间接使用）
 
 ###### **整数集合**
 
@@ -2817,39 +2653,29 @@ unsigned char *p; //当前元素首地址
 
 当Redis集合类型的元素都是整数并且都处在64位有符号整数范围内（2^64），使用该结构体存储。
 
+```shell
 127.0.0.1:6379> sadd set:001 1 3 5 6 2 
-
 (integer) 5 
-
 127.0.0.1:6379> object encoding set:001 
-
 "intset" 
-
 127.0.0.1:6379> sadd set:004 1 100000000000000000000000000 9999999999 
-
 (integer) 3 
-
 127.0.0.1:6379> object encoding set:004 
-
 "hashtable"
+```
 
 intset的结构图如下：
 
+```c
 typedef struct intset{ 
-
-//编码方式 
-
-uint32_t encoding; 
-
-//集合包含的元素数量 
-
-uint32_t length; 
-
-//保存元素的数组 
-
-int8_t contents[]; 
-
+  //编码方式 
+  uint32_t encoding; 
+  //集合包含的元素数量 
+  uint32_t length; 
+  //保存元素的数组 
+  int8_t contents[]; 
 }intset;
+```
 
 应用场景：
 
@@ -2871,43 +2697,31 @@ int8_t contents[];
 
 "quicklist"
 
-**双向列表（****adlist****）**双向链表优势：
+**双向列表（adlist）**双向链表优势：
 
-\1. 双向：链表具有前置节点和后置节点的引用，获取这两个节点时间复杂度都为O(1)。 
+1. 双向：链表具有前置节点和后置节点的引用，获取这两个节点时间复杂度都为O(1)。 
 
-\2. 普通链表（单链表）：节点类保留下一节点的引用。链表类只保留头节点的引用，只能从头节点插
+2. 普通链表（单链表）：节点类保留下一节点的引用。链表类只保留头节点的引用，只能从头节点插入删除
 
-入删除
+3. 无环：表头节点的 prev 指针和表尾节点的 next 指针都指向 NULL,对链表的访问都是以 NULL 结束。
 
-\3. 无环：表头节点的 prev 指针和表尾节点的 next 指针都指向 NULL,对链表的访问都是以 NULL 结
+   环状：头的前一个节点指向尾节点
 
-束。
+4. 带链表长度计数器：通过 len 属性获取链表长度的时间复杂度为 O(1)。 
 
-环状：头的前一个节点指向尾节点
-
-\4. 带链表长度计数器：通过 len 属性获取链表长度的时间复杂度为 O(1)。 
-
-\5. 多态：链表节点使用 void* 指针来保存节点值，可以保存各种不同类型的值。
+5. 多态：链表节点使用 void* 指针来保存节点值，可以保存各种不同类型的值。
 
 **快速列表**
 
-quicklist是一个双向链表，链表中的每个节点时一个ziplist结构。quicklist中的每个节点ziplist都能够存
-
-储多个数据元素。
+quicklist是一个双向链表，链表中的每个节点时一个ziplist结构。quicklist中的每个节点ziplist都能够存储多个数据元素。
 
 quicklist的结构定义如下：quicklistNode的结构定义如下：
 
 **数据压缩**
 
-quicklist每个节点的实际数据存储结构为ziplist，这种结构的优势在于节省存储空间。为了进一步降低
+quicklist每个节点的实际数据存储结构为ziplist，这种结构的优势在于节省存储空间。为了进一步降低ziplist的存储空间，还可以对ziplist进行压缩。Redis采用的压缩算法是LZF。其基本思想是：数据与前面重复的记录重复位置及长度，不重复的记录原始数据。
 
-ziplist的存储空间，还可以对ziplist进行压缩。Redis采用的压缩算法是LZF。其基本思想是：数据与前
-
-面重复的记录重复位置及长度，不重复的记录原始数据。
-
-压缩过后的数据可以分成多个片段，每个片段有两个部分：解释字段和数据字段。quicklistLZF的结构
-
-体如下：
+压缩过后的数据可以分成多个片段，每个片段有两个部分：解释字段和数据字段。quicklistLZF的结构体如下：
 
 **应用场景**
 
@@ -2917,61 +2731,36 @@ ziplist的存储空间，还可以对ziplist进行压缩。Redis采用的压缩�
 
 stream主要由：消息、生产者、消费者和消费组构成。
 
+```c
 typedef struct quicklist { 
-
-quicklistNode *head; // 指向quicklist的头部 
-
-quicklistNode *tail; // 指向quicklist的尾部 
-
-unsigned long count; // 列表中所有数据项的个数总和 
-
-unsigned int len; // quicklist节点的个数，即ziplist的个数 
-
-int fill : 16; // ziplist大小限定，由list-max-ziplist-size给定 
-
-(Redis设定) 
-
-unsigned int compress : 16; // 节点压缩深度设置，由list-compress-depth给定 
-
-(Redis设定) 
-
+  quicklistNode *head; // 指向quicklist的头部 
+  quicklistNode *tail; // 指向quicklist的尾部 
+  unsigned long count; // 列表中所有数据项的个数总和 
+  unsigned int len; // quicklist节点的个数，即ziplist的个数 
+  int fill : 16; // ziplist大小限定，由list-max-ziplist-size给定 (Redis设定) 
+  unsigned int compress : 16; // 节点压缩深度设置，由list-compress-depth给定 (Redis设定) 
 } quicklist; 
 
 typedef struct quicklistNode { 
-
-struct quicklistNode *prev; // 指向上一个ziplist节点 
-
-struct quicklistNode *next; // 指向下一个ziplist节点 
-
-unsigned char *zl; // 数据指针，如果没有被压缩，就指向ziplist结构，反之 
-
-指向 quicklistLZF结构 
-
-unsigned int sz; // 表示指向ziplist结构的总长度(内存占用长度) 
-
-unsigned int count : 16; // 表示ziplist中的数据项个数 
-
-unsigned int encoding : 2; // 编码方式，1--ziplist，2--quicklistLZF 
-
-unsigned int container : 2; // 预留字段，存放数据的方式，1--NONE，2--ziplist 
-
-unsigned int recompress : 1; // 解压标记，当查看一个被压缩的数据时，需要暂时解压，标 
-
-记此参数为 1，之后再重新进行压缩 
-
-unsigned int attempted_compress : 1; // 测试相关 
-
-unsigned int extra : 10; // 扩展字段，暂时没用 
-
+  struct quicklistNode *prev; // 指向上一个ziplist节点 
+  struct quicklistNode *next; // 指向下一个ziplist节点 
+  unsigned char *zl; // 数据指针，如果没有被压缩，就指向ziplist结构，反之指向 quicklistLZF结构 
+  unsigned int sz; // 表示指向ziplist结构的总长度(内存占用长度) 
+  unsigned int count : 16; // 表示ziplist中的数据项个数 
+  unsigned int encoding : 2; // 编码方式，1--ziplist，2--quicklistLZF 
+  unsigned int container : 2; // 预留字段，存放数据的方式，1--NONE，2--ziplist 
+  unsigned int recompress : 1; // 解压标记，当查看一个被压缩的数据时，需要暂时解压，标记此参数为 1，之后再重新进行压缩 
+  unsigned int attempted_compress : 1; // 测试相关 
+  unsigned int extra : 10; // 扩展字段，暂时没用 
 } quicklistNode; 
 
 typedef struct quicklistLZF { 
+  unsigned int sz; // LZF压缩后占用的字节数 
+  char compressed[]; // 柔性数组，指向数据部分 
+} quicklistLZF;
+```
 
-unsigned int sz; // LZF压缩后占用的字节数 
-
-char compressed[]; // 柔性数组，指向数据部分 
-
-} quicklistLZF;Redis Stream的底层主要使用了listpack（紧凑列表）和Rax树（基数树）。
+Redis Stream的底层主要使用了listpack（紧凑列表）和Rax树（基数树）。
 
 **listpack**
 
@@ -2981,15 +2770,9 @@ listpack表示一个字符串列表的序列化，listpack可用于存储字符�
 
 结构如下图：
 
-**Rax****树**
+**Rax树**
 
-Rax 是一个有序字典树 (基数树 Radix Tree)，按照 key 的字典序排列，支持快速地定位、插入和删除操
-
-作。Rax 被用在 Redis Stream 结构里面用于存储消息队列，在 Stream 里面消息 ID 的前缀是时间戳 + 序
-
-号，这样的消息可以理解为时间序列消息。使用 Rax 结构 进行存储就可以快速地根据消息 ID 定位到具
-
-体的消息，然后继续遍历指定消息 之后的所有消息。
+Rax 是一个有序字典树 (基数树 Radix Tree)，按照 key 的字典序排列，支持快速地定位、插入和删除操作。Rax 被用在 Redis Stream 结构里面用于存储消息队列，在 Stream 里面消息 ID 的前缀是时间戳 + 序号，这样的消息可以理解为时间序列消息。使用 Rax 结构 进行存储就可以快速地根据消息 ID 定位到具体的消息，然后继续遍历指定消息 之后的所有消息。
 
 应用场景：
 
@@ -3011,21 +2794,16 @@ hashtable：元素是64位以外的整数
 
 如下所示：
 
+```shell
 127.0.0.1:6379> sadd set:001 1 3 5 6 2 
-
 (integer) 5 
-
 127.0.0.1:6379> object encoding set:001 
-
 "intset" 
-
 127.0.0.1:6379> sadd set:004 1 100000000000000000000000000 9999999999 
-
 (integer) 3 
-
 127.0.0.1:6379> object encoding set:004 
-
 "hashtable"
+```
 
 **String**
 
@@ -3111,43 +2889,29 @@ REDIS_ENCODING_HT（字典）
 
 当Redis集合类型的元素是非整数或都处在64位有符号整数范围外（>18446744073709551616） 
 
+```shell
 127.0.0.1:6379> lpush list:001 1 2 5 4 3 
-
 (integer) 5 
-
 127.0.0.1:6379> object encoding list:001 
-
 "quicklist" 
-
 127.0.0.1:6379> hmset user:003 
-
 username111111111111111111111111111111111111111111111111111111111111111111111111 
-
 11111111111111111111111111111111 zhangfei password 111 num 
-
 2300000000000000000000000000000000000000000000000000 
-
 OK
-
 127.0.0.1:6379> object encoding user:003 
-
 "hashtable" 
-
 127.0.0.1:6379> hmset user:001 username zhangfei password 111 age 23 sex M 
-
 OK
-
 127.0.0.1:6379> object encoding user:001 
-
 "ziplist" 
-
 127.0.0.1:6379> sadd set:001 1 3 5 6 2 
-
 (integer) 5 
-
 127.0.0.1:6379> object encoding set:001 
+"intset"
+```
 
-"intset"**zset**
+**zset**
 
 有序集合的编码是压缩列表和跳跃表+字典
 
@@ -3283,23 +3047,19 @@ OK
 
 (integer) 24 
 
-127.0.0.1:6379> ttl name #失效**expire****原理**
+127.0.0.1:6379> ttl name 
+
+失效**expire原理**
 
 上面的代码是Redis 中关于数据库的结构体定义，这个结构体定义中除了 id 以外都是指向字典的指针，
 
 其中我们只看 dict 和 expires。
 
-dict 用来维护一个 Redis 数据库中包含的所有 Key-Value 键值对，expires则用于维护一个 Redis 数据
+dict 用来维护一个 Redis 数据库中包含的所有 Key-Value 键值对，expires则用于维护一个 Redis 数据库中设置了失效时间的键(即key与失效时间的映射)。
 
-库中设置了失效时间的键(即key与失效时间的映射)。
+当我们使用 expire命令设置一个key的失效时间时，Redis 首先到 dict 这个字典表中查找要设置的key是否存在，如果存在就将这个key和失效时间添加到 expires 这个字典表。
 
-当我们使用 expire命令设置一个key的失效时间时，Redis 首先到 dict 这个字典表中查找要设置的key是
-
-否存在，如果存在就将这个key和失效时间添加到 expires 这个字典表。
-
-当我们使用 setex命令向系统插入数据时，Redis 首先将 Key 和 Value 添加到 dict 这个字典表中，然后
-
-将 Key 和失效时间添加到 expires 这个字典表中。
+当我们使用 setex命令向系统插入数据时，Redis 首先将 Key 和 Value 添加到 dict 这个字典表中，然后将 Key 和失效时间添加到 expires 这个字典表中。
 
 简单地总结来说就是，设置了失效时间的key和具体的失效时间全部都维护在 expires 这个字典表中。
 
@@ -3403,33 +3163,19 @@ LRU (Least recently used) 最近最少使用，算法根据数据的历史访问
 
 右端插入的。
 
-2.此时，业务方访问用户5，由于哈希链表中没有用户5的数据，我们从数据库中读取出来，插入到缓存
+2.此时，业务方访问用户5，由于哈希链表中没有用户5的数据，我们从数据库中读取出来，插入到缓存当中。这时候，链表中最右端是最新访问到的用户5，最左端是最近最少访问的用户1。
 
-当中。这时候，链表中最右端是最新访问到的用户5，最左端是最近最少访问的用户1。3.接下来，业务方访问用户2，哈希链表中存在用户2的数据，我们怎么做呢？我们把用户2从它的前驱
+3.接下来，业务方访问用户2，哈希链表中存在用户2的数据，我们怎么做呢？我们把用户2从它的前驱节点和后继节点之间移除，重新插入到链表最右端。这时候，链表中最右端变成了最新访问到的用户2，最左端仍然是最近最少访问的用户1。
 
-节点和后继节点之间移除，重新插入到链表最右端。这时候，链表中最右端变成了最新访问到的用户
+4.接下来，业务方请求修改用户4的信息。同样道理，我们把用户4从原来的位置移动到链表最右侧，并把用户信息的值更新。这时候，链表中最右端是最新访问到的用户4，最左端仍然是最近最少访问的用户1。
 
-2，最左端仍然是最近最少访问的用户1。
-
-4.接下来，业务方请求修改用户4的信息。同样道理，我们把用户4从原来的位置移动到链表最右侧，并
-
-把用户信息的值更新。这时候，链表中最右端是最新访问到的用户4，最左端仍然是最近最少访问的用
-
-户1。5.业务访问用户6，用户6在缓存里没有，需要插入到哈希链表。假设这时候缓存容量已经达到上限，必
-
-须先删除最近最少访问的数据，那么位于哈希链表最左端的用户1就会被删除掉，然后再把用户6插入到
-
-最右端。
+5.业务访问用户6，用户6在缓存里没有，需要插入到哈希链表。假设这时候缓存容量已经达到上限，必须先删除最近最少访问的数据，那么位于哈希链表最左端的用户1就会被删除掉，然后再把用户6插入到最右端。
 
 **Redis的LRU数据淘汰机制**
 
-在服务器配置中保存了 lru 计数器 server.lrulock，会定时（redis 定时程序 serverCorn()）更新，
+在服务器配置中保存了 lru 计数器 server.lrulock，会定时（redis 定时程序 serverCorn()）更新，server.lrulock 的值是根据 server.unixtime 计算出来的。
 
-server.lrulock 的值是根据 server.unixtime 计算出来的。
-
-另外，从 struct redisObject 中可以发现，每一个 redis 对象都会设置相应的 lru。可以想象的是，每一
-
-次访问数据的时候，会更新 redisObject.lru。
+另外，从 struct redisObject 中可以发现，每一个 redis 对象都会设置相应的 lru。可以想象的是，每一次访问数据的时候，会更新 redisObject.lru。
 
 LRU 数据淘汰机制是这样的：在数据集中随机挑选几个键值对，取出其中 lru 最大的键值对淘汰。
 
@@ -3445,9 +3191,7 @@ allkeys-lru
 
 **LFU**
 
-LFU (Least frequently used) 最不经常使用，如果一个数据在最近一段时间内使用次数很少，那么在将
-
-来一段时间内被使用的可能性也很小。
+LFU (Least frequently used) 最不经常使用，如果一个数据在最近一段时间内使用次数很少，那么在将来一段时间内被使用的可能性也很小。
 
 volatile-lfu
 
@@ -3561,23 +3305,20 @@ Redis可以利用事务机制批量执行命令。后面会详细讲解。
 
 发布订阅模式是：一个客户端触发，多个客户端被动接收，通过服务器中转。后面会详细讲解。
 
-**脚本化的批量执行（****lua****）** 
+**脚本化的批量执行（lua）** 
 
+```java
 Jedis redis = new Jedis("192.168.1.111", 6379); 
-
 redis.auth("12345678");//授权密码 对应redis.conf的requirepass密码 
-
 Pipeline pipe = jedis.pipelined(); 
-
 for (int i = 0; i <50000; i++) { 
-
-pipe.set("key_"+String.valueOf(i),String.valueOf(i)); 
-
+	pipe.set("key_"+String.valueOf(i),String.valueOf(i)); 
 }
-
 //将封装后的PIPE一次性发给redis 
+pipe.sync();
+```
 
-pipe.sync();客户端向服务器端提交一个lua脚本，服务器端执行该脚本。后面会详细讲解。
+客户端向服务器端提交一个lua脚本，服务器端执行该脚本。后面会详细讲解。
 
 **请求数据格式**
 
@@ -3617,7 +3358,7 @@ exists name
 
 :1
 
-**规范格式****(redis-cli) RESP**
+**规范格式(redis-cli) RESP**
 
 1、间隔符号，在Linux下是\r\n，在Windows下是\n
 
@@ -3673,7 +3414,7 @@ Hello
 
 监听 socket 建立连接
 
-**建立****Client**
+**建立Client**
 
 redis-cli建立socket
 
@@ -3741,9 +3482,7 @@ redis-server为每个连接（socket）创建一个 Client 对象
 
 **协议解析**
 
-用户在Redis客户端键入命令后，Redis-cli会把命令转化为RESP协议格式，然后发送给服务器。服务器
-
-再对协议进行解析，分为三个步骤
+用户在Redis客户端键入命令后，Redis-cli会把命令转化为RESP协议格式，然后发送给服务器。服务器再对协议进行解析，分为三个步骤
 
 \1. 解析命令请求参数数量
 
@@ -3769,9 +3508,7 @@ zhaoyun(/r/n)
 
 \2. 循环解析请求参数
 
-首字符必须是"$"，使用"/r"定位到行尾，之间的数是参数的长度，从/n后到下一个"$"之间就是参
-
-数的值了
+首字符必须是"$"，使用"/r"定位到行尾，之间的数是参数的长度，从/n后到下一个"$"之间就是参数的值了
 
 循环解析直到没有"$"。
 
@@ -3799,9 +3536,7 @@ arguments”错误。
 
 如果执行命令时间过长还要记录慢查询日志
 
-执行命令后返回结果的类型不同则协议格式也不同，分为5类：状态回复、错误回复、整数回复、批量
-
-回复、多条批量回复。
+执行命令后返回结果的类型不同则协议格式也不同，分为5类：状态回复、错误回复、整数回复、批量回复、多条批量回复。
 
 **事件处理机制**
 
@@ -3815,21 +3550,21 @@ Redis将事件分为两大类：文件事件和时间事件。
 
 **文件事件**
 
-文件事件即Socket的读写事件，也就是IO事件。 fifile descriptor （文件描述符）
+文件事件即Socket的读写事件，也就是IO事件。 file descriptor （文件描述符）
 
 客户端的连接、命令请求、数据回复、连接断开
 
 **socket**
 
-套接字（socket）是一个抽象层，应用程序可以通过它发送或接收数据。**Reactor**
+套接字（socket）是一个抽象层，应用程序可以通过它发送或接收数据。
+
+**Reactor**
 
 Redis事件处理机制采用单线程的**Reactor****模式**，属于**I/O****多路复用**的一种常见模式。
 
 IO多路复用( I/O multiplexing ）指的通过单个线程管理多个Socket。
 
-Reactor pattern(反应器设计模式)是一种为处理并发服务请求，并将请求提交到 一个或者多个服务处理
-
-程序的事件设计模式。
+Reactor pattern(反应器设计模式)是一种为处理并发服务请求，并将请求提交到 一个或者多个服务处理程序的事件设计模式。
 
 Reactor模式是事件驱动的
 
@@ -3843,15 +3578,11 @@ Reactor模式是事件驱动的
 
 Handle：I/O操作的基本文件句柄，在linux下就是fd（文件描述符）Synchronous Event Demultiplexer ：同步事件分离器，阻塞等待Handles中的事件发生。（系统）
 
-Reactor: 事件分派器，负责事件的注册，删除以及对所有注册到事件分派器的事件进行监控， 当事件
-
-发生时会调用Event Handler接口来处理事件。
+Reactor: 事件分派器，负责事件的注册，删除以及对所有注册到事件分派器的事件进行监控， 当事件发生时会调用Event Handler接口来处理事件。
 
 Event Handler: 事件处理器接口，这里需要Concrete Event Handler来实现该接口
 
-Concrete Event Handler：真实的事件处理器，通常都是绑定了一个handle，实现对可读事件 进行读
-
-取或对可写事件进行写入的操作。
+Concrete Event Handler：真实的事件处理器，通常都是绑定了一个handle，实现对可读事件 进行读取或对可写事件进行写入的操作。
 
 主程序向事件分派器（Reactor）注册要监听的事件
 
@@ -3859,13 +3590,11 @@ Reactor调用OS提供的事件处理分离器，监听事件（wait）
 
 当有事件产生时，Reactor将事件派给相应的处理器来处理 handle_event()
 
-**4****种****IO****多路复用模型与选择**
+**4种IO多路复用模型与选择**
 
 select，poll，epoll、kqueue都是IO多路复用的机制。
 
-I/O多路复用就是通过一种机制，一个进程可以监视多个描述符（socket），一旦某个描述符就绪（一
-
-般是读就绪或者写就绪），能够通知程序进行相应的读写操作。
+I/O多路复用就是通过一种机制，一个进程可以监视多个描述符（socket），一旦某个描述符就绪（一般是读就绪或者写就绪），能够通知程序进行相应的读写操作。
 
 **select**
 
@@ -3895,9 +3624,7 @@ windows linux ...
 
 单个进程打开的文件描述是有一定限制的，它由FD_SETSIZE设置，默认值是1024，采用数组存储
 
-另外在检查数组中是否有文件描述需要读写时，采用的是**线性扫描**的方法，即不管这些socket是不是活
-
-跃的，都轮询一遍，所以效率比较低
+另外在检查数组中是否有文件描述需要读写时，采用的是**线性扫描**的方法，即不管这些socket是不是活跃的，都轮询一遍，所以效率比较低
 
 **poll**
 
@@ -3913,9 +3640,7 @@ short revents; //实际发生的事件
 
 };
 
-poll使用一个 pollfd的指针实现，pollfd结构包含了要监视的event和发生的event，不再使用select“参 
-
-数-值”传递的方式。
+poll使用一个 pollfd的指针实现，pollfd结构包含了要监视的event和发生的event，不再使用select“参数-值”传递的方式。
 
 优点：
 
@@ -3923,31 +3648,19 @@ poll使用一个 pollfd的指针实现，pollfd结构包含了要监视的event�
 
 缺点：
 
-另外在检查链表中是否有文件描述需要读写时，采用的是线性扫描的方法，即不管这些socket是不是活
-
-跃的，都轮询一遍，所以效率比较低。
+另外在检查链表中是否有文件描述需要读写时，采用的是线性扫描的方法，即不管这些socket是不是活跃的，都轮询一遍，所以效率比较低。
 
 **epoll**
 
-epoll是在linux2.6内核中提出的，是之前的select和poll的增强版本。相对于select和poll来说，epoll更
-
-加灵活，没有描述符限制。epoll使用一个文件描述符管理多个描述符，将用户关系的文件描述符的事件
-
-存放到内核的一个事件表中，这样在用户空间和内核空间的copy只需一次。
+epoll是在linux2.6内核中提出的，是之前的select和poll的增强版本。相对于select和poll来说，epoll更加灵活，没有描述符限制。epoll使用一个文件描述符管理多个描述符，将用户关系的文件描述符的事件存放到内核的一个事件表中，这样在用户空间和内核空间的copy只需一次。
 
 int epoll_create(int size)
 
-创建一个epoll的句柄。自从linux2.6.8之后，size参数是被忽略的。需要注意的是，当创建好epoll
-
-句柄后，它就是会占用一个fd值，在linux下如果查看/proc/进程id/fd/，是能够看到这个fd的，所
-
-以在使用完epoll后，必须调用close()关闭，否则可能导致fd被耗尽。
+创建一个epoll的句柄。自从linux2.6.8之后，size参数是被忽略的。需要注意的是，当创建好epoll句柄后，它就是会占用一个fd值，在linux下如果查看/proc/进程id/fd/，是能够看到这个fd的，所以在使用完epoll后，必须调用close()关闭，否则可能导致fd被耗尽。
 
 int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)
 
-poll的事件注册函数，它不同于select()是在监听事件时告诉内核要监听什么类型的事件，而是在这里先
-
-注册要监听的事件类型。
+poll的事件注册函数，它不同于select()是在监听事件时告诉内核要监听什么类型的事件，而是在这里先注册要监听的事件类型。
 
 第一个参数是epoll_create()的返回值。
 
@@ -3965,23 +3678,13 @@ EPOLL_CTL_DEL：从epfd中删除一个fd；
 
 优点：
 
-epoll 没有最大并发连接的限制，上限是最大可以打开文件的数目，举个例子,在1GB内存的机器上大约
-
-是10万左 右
-
-效率提升， epoll 最大的优点就在于它**只管你****“****活跃****”****的连接** ，而跟连接总数无关，因此在实际的网络环
-
-境 中， epoll 的效率就会远远高于 select 和 poll 。
+epoll 没有最大并发连接的限制，上限是最大可以打开文件的数目，举个例子,在1GB内存的机器上大约是10万左右效率提升， epoll 最大的优点就在于它**只管你“活跃”的连接** ，而跟连接总数无关，因此在实际的网络环境 中， epoll 的效率就会远远高于 select 和 poll 。
 
 epoll使用了共享内存，不用做内存拷贝
 
 **kqueue**
 
-kqueue 是 unix 下的一个IO多路复用库。最初是2000年Jonathan Lemon在FreeBSD系统上开发的一个
-
-高性能的事件通知接口。注册一批socket描述符到 kqueue 以后，当其中的描述符状态发生变化时，
-
-kqueue 将一次性通知应用程序哪些描述符可读、可写或出错了。
+kqueue 是 unix 下的一个IO多路复用库。最初是2000年Jonathan Lemon在FreeBSD系统上开发的一个高性能的事件通知接口。注册一批socket描述符到 kqueue 以后，当其中的描述符状态发生变化时，kqueue 将一次性通知应用程序哪些描述符可读、可写或出错了。
 
 优点：
 
@@ -3991,29 +3694,19 @@ kqueue 将一次性通知应用程序哪些描述符可读、可写或出错了�
 
 在redis中，对于文件事件的处理采用了Reactor模型。采用的是epoll的实现方式。
 
-int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int 
-
-timeout); 
-
+```c
+int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout); 
 struct kevent { 
+  uintptr_t ident; //是事件唯一的 key，在 socket() 使用中，它是 socket 的 fd 句柄
+  int16_t filter; //是事件的类型(EVFILT_READ socket 可读事件 EVFILT_WRITE socket 可写事件) 
+  uint16_t flags; //操作方式 
+  uint32_t fflags; // 
+  intptr_t data; //数据长度 
+  void *udata; //数据 
+};
+```
 
-uintptr_t ident; //是事件唯一的 key，在 socket() 使用中，它是 socket 的 
-
-fd 句柄
-
-int16_t filter; //是事件的类型(EVFILT_READ socket 可读事件 
-
-EVFILT_WRITE socket 可 写事件) 
-
-uint16_t flags; //操作方式 
-
-uint32_t fflags; // 
-
-intptr_t data; //数据长度 
-
-void *udata; //数据 
-
-};Redis在主循环中统一处理文件事件和时间事件，信号事件则由专门的handler来处理。
+Redis在主循环中统一处理文件事件和时间事件，信号事件则由专门的handler来处理。
 
 主循环
 
@@ -4021,57 +3714,35 @@ void *udata; //数据
 
 **连接处理函数** **acceptTCPHandler**
 
-当客户端向 Redis 建立 socket时，aeEventLoop 会调用 acceptTcpHandler 处理函数，服务器会为每
+当客户端向 Redis 建立 socket时，aeEventLoop 会调用 acceptTcpHandler 处理函数，服务器会为每个链接创建一个 Client 对象，并创建相应文件事件来监听socket的可读事件，并指定事件处理函数。
 
-个链接创建一个 Client 对象，并创建相应文件事件来监听socket的可读事件，并指定事件处理函数。
-
+```c
 void aeMain(aeEventLoop *eventLoop) { 
-
-eventLoop->stop = 0; 
-
-while (!eventLoop->stop) { //循环监听事件 
-
-// 阻塞之前的处理 
-
-if (eventLoop->beforesleep != NULL) 
-
-eventLoop->beforesleep(eventLoop); 
-
-// 事件处理，第二个参数决定处理哪类事件 
-
-aeProcessEvents(eventLoop, AE_ALL_EVENTS|AE_CALL_AFTER_SLEEP); 
-
-} 
-
+  eventLoop->stop = 0; 
+  while (!eventLoop->stop) { //循环监听事件 
+    // 阻塞之前的处理 
+    if (eventLoop->beforesleep != NULL) 
+    	eventLoop->beforesleep(eventLoop); 
+    // 事件处理，第二个参数决定处理哪类事件 
+    aeProcessEvents(eventLoop, AE_ALL_EVENTS|AE_CALL_AFTER_SLEEP); 
+  } 
 }
-
-// 当客户端建立链接时进行的eventloop处理函数 networking.c 
-
+  // 当客户端建立链接时进行的eventloop处理函数 networking.c 
 void acceptTcpHandler(aeEventLoop *el, int fd, void *privdata, int mask) { 
+  .... 
+  // 层层调用，最后在anet.c 中 anetGenericAccept 方法中调用 socket 的 accept 方法 
+  cfd = anetTcpAccept(server.neterr, fd, cip, sizeof(cip), &cport); 
+  if (cfd == ANET_ERR) { 
+  if (errno != EWOULDBLOCK) 
+  serverLog(LL_WARNING, 
+  "Accepting client connection: %s", server.neterr); 
+  return; 
+}
+```
 
-.... 
+**请求处理函数** **readQueryFromClient**
 
-// 层层调用，最后在anet.c 中 anetGenericAccept 方法中调用 socket 的 accept 方法 
-
-cfd = anetTcpAccept(server.neterr, fd, cip, sizeof(cip), &cport); 
-
-if (cfd == ANET_ERR) { 
-
-if (errno != EWOULDBLOCK) 
-
-serverLog(LL_WARNING, 
-
-"Accepting client connection: %s", server.neterr); 
-
-return; 
-
-}**请求处理函数** **readQueryFromClient**
-
-当客户端通过 socket 发送来数据后，Redis 会调用 readQueryFromClient 方法,readQueryFromClient
-
-方法会调用 read 方法从 socket 中读取数据到输入缓冲区中，然后判断其大小是否大于系统设置的
-
-client_max_querybuf_len，如果大于，则向 Redis返回错误信息，并关闭 client。 
+当客户端通过 socket 发送来数据后，Redis 会调用 readQueryFromClient 方法,readQueryFromClient方法会调用 read 方法从 socket 中读取数据到输入缓冲区中，然后判断其大小是否大于系统设置的client_max_querybuf_len，如果大于，则向 Redis返回错误信息，并关闭 client。 
 
 serverLog(LL_VERBOSE,"Accepted %s:%d", cip, cport); 
 
@@ -4159,7 +3830,9 @@ sdsrange(c->pending_querybuf,applied,-1);
 
 } 
 
-}**命令回复处理器** **sendReplyToClient**
+}
+
+**命令回复处理器** **sendReplyToClient**
 
 **sendReplyToClient**函数是Redis的命令回复处理器，这个处理器负责将服务器执行命令后得到的命令
 
@@ -4451,9 +4124,7 @@ ae.c里面使用如下的方式来决定系统使用的机制:
 
 **时间事件****: timeEventHead, beforesleep, aftersleep**
 
-aeTimeEvent结构体为时间事件，Redis 将所有时间事件都放在一个无序链表中，每次 Redis 会遍历整
-
-个链表，查找所有已经到达的时间事件，并且调用相应的事件处理器。
+aeTimeEvent结构体为时间事件，Redis 将所有时间事件都放在一个无序链表中，每次 Redis 会遍历整个链表，查找所有已经到达的时间事件，并且调用相应的事件处理器。
 
 typedef struct aeTimeEvent { 
 
@@ -4511,15 +4182,9 @@ AOF持久化存储策略，类似于mysql的bin log
 
 **aeMain**
 
-aeMain 函数其实就是一个封装的 while 循环，循环中的代码会一直运行直到 eventLoop 的 stop 被设
+aeMain 函数其实就是一个封装的 while 循环，循环中的代码会一直运行直到 eventLoop 的 stop 被设置为1(true)。它会不停尝试调用 aeProcessEvents 对可能存在的多种事件进行处理，而aeProcessEvents 就是实际用于处理事件的函数。
 
-置为1(true)。它会不停尝试调用 aeProcessEvents 对可能存在的多种事件进行处理，而
-
-aeProcessEvents 就是实际用于处理事件的函数。
-
-aemain函数中，首先调用Beforesleep。这个方法在Redis每次进入sleep/wait去等待监听的端口发生
-
-I/O事件之前被调用。当有事件发生时，调用aeProcessEvent进行处理。
+aemain函数中，首先调用Beforesleep。这个方法在Redis每次进入sleep/wait去等待监听的端口发生I/O事件之前被调用。当有事件发生时，调用aeProcessEvent进行处理。
 
 **aeProcessEvent**
 
@@ -4575,11 +4240,7 @@ if (shortest) {**计算最早时间事件的执行时间，获取文件时间可
 
 aeSearchNearestTimer
 
- aeProcessEvents 都会先 **计算最近的时间事件发生所需要等待的时间** ，然后调用 aeApiPoll 方法在这
-
-段时间中等待事件的发生，在这段时间中如果发生了文件事件，就会优先处理文件事件，否则就会一直
-
-等待，直到最近的时间事件需要触发
+ aeProcessEvents 都会先 **计算最近的时间事件发生所需要等待的时间** ，然后调用 aeApiPoll 方法在这段时间中等待事件的发生，在这段时间中如果发生了文件事件，就会优先处理文件事件，否则就会一直等待，直到最近的时间事件需要触发
 
 **堵塞等待文件事件产生**
 
@@ -4627,9 +4288,7 @@ tvp = NULL; //阻塞到文件事件发生
 
 } 
 
-}//等待文件事件发生，tvp为超时时间，超时马上返回(tvp为0表示马上，为null表示阻塞到 
-
-事件发生)
+}//等待文件事件发生，tvp为超时时间，超时马上返回(tvp为0表示马上，为null表示阻塞到 事件发生)
 
 numevents = aeApiPoll(eventLoop, tvp); 
 
@@ -4719,11 +4378,7 @@ Cache。
 
 **文件缓存**
 
-这里的文件缓存是基于http协议的文件缓存，一般放在nginx中。
-
-因为静态文件（比如css，js， 图片）中，很多都是不经常更新的。nginx使用proxy_cache将用户的请
-
-求缓存到本地一个目录。下一个相同请求可以直接调取缓存文件，就不用去请求服务器了。
+这里的文件缓存是基于http协议的文件缓存，一般放在nginx中。因为静态文件（比如css，js， 图片）中，很多都是不经常更新的。nginx使用proxy_cache将用户的请求缓存到本地一个目录。下一个相同请求可以直接调取缓存文件，就不用去请求服务器了。
 
 server {
 
@@ -4735,7 +4390,9 @@ root /mnt/blog/;
 
 location / { 
 
-}**Redis****缓存**
+}
+
+**Redis缓存**
 
 分布式缓存，采用主从+哨兵或RedisCluster的方式缓存数据库的数据。
 
@@ -4819,7 +4476,7 @@ allkeys-random ： 希望请求符合平均分布(每个元素以相同的概率
 
 禁止驱逐 用作DB 不设置maxmemory
 
-**key****数量**
+**key数量**
 
 官方说Redis单例能处理key：2.5亿个
 
@@ -4827,21 +4484,15 @@ allkeys-random ： 希望请求符合平均分布(每个元素以相同的概率
 
 **读写峰值**
 
-Redis采用的是基于内存的采用的是**单进程单线程**模型的 **KV** **数据库**，**由****C****语言编写**，官方提供的数据是
-
-可以达到110000+的QPS（每秒内查询次数）。80000的写
+Redis采用的是基于内存的采用的是**单进程单线程**模型的 **KV** **数据库**，**由C语言编写**，官方提供的数据是可以达到110000+的QPS（每秒内查询次数）。80000的写
 
 **命中率**
 
 命中：可以直接通过缓存获取到需要的数据。
 
-不命中：无法直接通过缓存获取到想要的数据，需要再次查询数据库或者执行其它的操作。原因可能是
+不命中：无法直接通过缓存获取到想要的数据，需要再次查询数据库或者执行其它的操作。原因可能是由于缓存中根本不存在，或者缓存已经过期。
 
-由于缓存中根本不存在，或者缓存已经过期。
-
-通常来讲，缓存的命中率越高则表示使用缓存的收益越高，应用的性能越好（响应时间越短、吞吐量越
-
-高），抗并发的能力越强。
+通常来讲，缓存的命中率越高则表示使用缓存的收益越高，应用的性能越好（响应时间越短、吞吐量越高），抗并发的能力越强。
 
 由此可见，在高并发的互联网系统中，缓存的命中率是至关重要的指标。
 
@@ -4927,9 +4578,7 @@ grafana、prometheus以及redis_exporter。
 
 **缓存预热**
 
-缓存预热就是系统启动前,提前将相关的缓存数据直接加载到缓存系统。避免在用户请求的时候,先查询
-
-数据库,然后再将数据缓存的问题!用户直接查询实现被预热的缓存数据。
+缓存预热就是系统启动前,提前将相关的缓存数据直接加载到缓存系统。避免在用户请求的时候,先查询数据库,然后再将数据缓存的问题!用户直接查询实现被预热的缓存数据。
 
 加载缓存思路：
 
@@ -4941,13 +4590,9 @@ grafana、prometheus以及redis_exporter。
 
 **缓存穿透**
 
-一般的缓存系统，都是按照key去缓存查询，如果不存在对应的value，就应该去后端系统查找（比如
+一般的缓存系统，都是按照key去缓存查询，如果不存在对应的value，就应该去后端系统查找（比如DB）。
 
-DB）。
-
-缓存穿透是指在高并发下查询key不存在的数据（不存在的key），会穿过缓存查询数据库。导致数据库
-
-压力过大而宕机
+缓存穿透是指在高并发下查询key不存在的数据（不存在的key），会穿过缓存查询数据库。导致数据库压力过大而宕机
 
 解决方案：
 
@@ -4957,31 +4602,17 @@ DB）。
 
 问题：缓存太多空值占用了更多的空间
 
-使用布隆过滤器。在缓存之前在加一层布隆过滤器，在查询的时候先去布隆过滤器查询 key 是否
-
-存在，如果不存在就直接返回，存在再查缓存和DB。布隆过滤器（Bloom Filter）是1970年由布隆提出的。它实际上是一个很长的二进制向量和一系列随机
+使用布隆过滤器。在缓存之前在加一层布隆过滤器，在查询的时候先去布隆过滤器查询 key 是否存在，如果不存在就直接返回，存在再查缓存和DB。布隆过滤器（Bloom Filter）是1970年由布隆提出的。它实际上是一个很长的二进制向量和一系列随机
 
 hash映射函数。
 
-布隆过滤器可以用于检索一个元素是否在一个集合中。它的优点是空间效率和查询时间都远远超过一般
+布隆过滤器可以用于检索一个元素是否在一个集合中。它的优点是空间效率和查询时间都远远超过一般的算法。
 
-的算法。
-
-布隆过滤器的原理是，当一个元素被加入集合时，通过K个Hash函数将这个元素映射成一个数组中的K
-
-个点，把它们置为1。检索时，我们只要看看这些点是不是都是1就（大约）知道集合中有没有它了：如
-
-果这些点有任何一个0，则被检元素一定不在；如果都是1，则被检元素很可能在。这就是布隆过滤器的
-
-基本思想。把字符串------>位 省空间 （1或0）
-
-不用循环------>比较位置 省时间
+布隆过滤器的原理是，当一个元素被加入集合时，通过K个Hash函数将这个元素映射成一个数组中的K个点，把它们置为1。检索时，我们只要看看这些点是不是都是1就（大约）知道集合中有没有它了：如果这些点有任何一个0，则被检元素一定不在；如果都是1，则被检元素很可能在。这就是布隆过滤器的基本思想。把字符串------>位 省空间 （1或0）不用循环------>比较位置 省时间
 
 **缓存雪崩**
 
-当缓存服务器重启或者大量缓存集中在某一个时间段失效，这样在失效的时候，也会给后端系统(比如
-
-DB)带来很大压力。
+当缓存服务器重启或者大量缓存集中在某一个时间段失效，这样在失效的时候，也会给后端系统(比如DB)带来很大压力。
 
 突然间大量的key失效了或redis重启，大量访问数据库，数据库崩溃
 
@@ -4995,29 +4626,19 @@ DB)带来很大压力。
 
 **缓存击穿**
 
-对于一些设置了过期时间的key，如果这些key可能会在某些时间点被超高并发地访问，是一种非常“热 
+对于一些设置了过期时间的key，如果这些key可能会在某些时间点被超高并发地访问，是一种非常“热点”的数据。这个时候，需要考虑一个问题：缓存被“击穿”的问题，这个和缓存雪崩的区别在于这里针对某一key缓存，前者则是很多key。
 
-点”的数据。这个时候，需要考虑一个问题：缓存被“击穿”的问题，这个和缓存雪崩的区别在于这里针对
-
-某一key缓存，前者则是很多key。
-
-缓存在某个时间点过期的时候，恰好在这个时间点对这个Key有大量的并发请求过来，这些请求发现缓
-
-存过期一般都会从后端DB加载数据并回设到缓存，这个时候大并发的请求可能会瞬间把后端DB压垮。
+缓存在某个时间点过期的时候，恰好在这个时间点对这个Key有大量的并发请求过来，这些请求发现缓存过期一般都会从后端DB加载数据并回设到缓存，这个时候大并发的请求可能会瞬间把后端DB压垮。
 
 解决方案：
 
 1、用分布式锁控制访问的线程
 
-使用redis的setnx互斥锁先进行判断，这样其他线程就处于等待状态，保证不会有大并发操作去操作数
-
-据库。
+使用redis的setnx互斥锁先进行判断，这样其他线程就处于等待状态，保证不会有大并发操作去操作数据库。
 
 2、不设超时时间，volatile-lru 但会造成写一致问题
 
-当数据库数据发生更新时，缓存中的数据不会及时更新，这样会造成数据库中的数据与缓存中的数据的
-
-不一致，应用会从缓存中读取到脏数据。可采用延时双删策略处理，这个我们后面会详细讲到。
+当数据库数据发生更新时，缓存中的数据不会及时更新，这样会造成数据库中的数据与缓存中的数据的不一致，应用会从缓存中读取到脏数据。可采用延时双删策略处理，这个我们后面会详细讲到。
 
 **数据不一致**
 
@@ -5041,7 +4662,7 @@ DB)带来很大压力。
 
 本质上不是一个原子操作，所以时序控制不可行高并发情况下会产生不一致
 
-**保证数据的最终一致性****(****延时双删****)** 
+**保证数据的最终一致性(延时双删)** 
 
 1、先更新数据库同时删除缓存项(key)，等读的时候再填充缓存
 
@@ -5053,27 +4674,23 @@ DB)带来很大压力。
 
 升级方案
 
-通过数据库的binlog来异步淘汰key，利用工具(canal)将binlog日志采集发送到MQ中，然后通过ACK机
-
-制确认处理删除缓存。
+通过数据库的binlog来异步淘汰key，利用工具(canal)将binlog日志采集发送到MQ中，然后通过ACK机制确认处理删除缓存。
 
 **数据并发竞争**
 
 这里的并发指的是多个redis的client同时set 同一个key引起的并发问题。
 
-多客户端（Jedis）同时并发写一个key，一个key的值是1，本来按顺序修改为2,3,4，最后是4，但是顺
+多客户端（Jedis）同时并发写一个key，一个key的值是1，本来按顺序修改为2,3,4，最后是4，但是顺序变成了4,3,2，最后变成了2。
 
-序变成了4,3,2，最后变成了2。
+**第一种方案：分布式锁+时间戳**
 
-**第一种方案：分布式锁****+****时间戳**
-
-**1.****整体技术方案**
+**1.整体技术方案**
 
 这种情况，主要是准备一个分布式锁，大家去抢锁，抢到锁就做set操作。
 
 加锁的目的实际上就是把并行读写改成串行读写的方式，从而来避免资源竞争。
 
-**2.Redis****分布式锁的实现**
+**2.Redis分布式锁的实现**
 
 主要用到的redis函数是setnx()
 
@@ -5085,9 +4702,7 @@ DB)带来很大压力。
 
 系统A key 1 {ValueA 7:00}
 
-系统B key 1 { ValueB 7:05}假设系统B先抢到锁，将key1设置为{ValueB 7:05}。接下来系统A抢到锁，发现自己的key1的时间戳早
-
-于缓存中的时间戳（7:00<7:05），那就不做set操作了。
+系统B key 1 { ValueB 7:05}假设系统B先抢到锁，将key1设置为{ValueB 7:05}。接下来系统A抢到锁，发现自己的key1的时间戳早于缓存中的时间戳（7:00<7:05），那就不做set操作了。
 
 **第二种方案：利用消息队列**
 
@@ -5097,11 +4712,7 @@ DB)带来很大压力。
 
 **Hot Key**
 
-当有大量的请求(几十万)访问某个Redis某个key时，由于流量集中达到网络上限，从而导致这个redis的
-
-服务器宕机。造成缓存击穿，接下来对这个key的访问将直接访问数据库造成数据库崩溃，或者访问数
-
-据库回填Redis再访问Redis，继续崩溃。
+当有大量的请求(几十万)访问某个Redis某个key时，由于流量集中达到网络上限，从而导致这个redis的服务器宕机。造成缓存击穿，接下来对这个key的访问将直接访问数据库造成数据库崩溃，或者访问数据库回填Redis再访问Redis，继续崩溃。
 
 如何发现热key 
 
@@ -5113,27 +4724,17 @@ DB)带来很大压力。
 
 4、利用Redis自带的命令，monitor、hotkeys。但是执行缓慢（不要用）
 
-5、利用基于大数据领域的流式计算技术来进行实时数据访问次数的统计，比如 Storm、Spark
-
-Streaming、Flink，这些技术都是可以的。发现热点数据后可以写到zookeeper中如何处理热Key： 
+5、利用基于大数据领域的流式计算技术来进行实时数据访问次数的统计，比如 Storm、SparkStreaming、Flink，这些技术都是可以的。发现热点数据后可以写到zookeeper中如何处理热Key： 
 
 1、变分布式缓存为本地缓存
 
-发现热key后，把缓存数据取出后，直接加载到本地缓存中。可以采用Ehcache、Guava Cache都可
+发现热key后，把缓存数据取出后，直接加载到本地缓存中。可以采用Ehcache、Guava Cache都可以，这样系统在访问热key数据时就可以直接访问自己的缓存了。（数据不要求时时一致）
 
-以，这样系统在访问热key数据时就可以直接访问自己的缓存了。（数据不要求时时一致）
-
-2、在每个Redis主节点上备份热key数据，这样在读取时可以采用随机读取的方式，将访问压力负载到
-
-每个Redis上。
+2、在每个Redis主节点上备份热key数据，这样在读取时可以采用随机读取的方式，将访问压力负载到每个Redis上。
 
 3、利用对热点数据访问的限流熔断保护措施
 
-每个系统实例每秒最多请求缓存集群读操作不超过 400 次，一超过就可以熔断掉，不让请求缓存集群，
-
-直接返回一个空白信息，然后用户稍后会自行再次重新刷新页面之类的。（首页不行，系统友好性差）
-
-通过系统层自己直接加限流熔断保护措施，可以很好的保护后面的缓存集群。
+每个系统实例每秒最多请求缓存集群读操作不超过 400 次，一超过就可以熔断掉，不让请求缓存集群，直接返回一个空白信息，然后用户稍后会自行再次重新刷新页面之类的。（首页不行，系统友好性差）通过系统层自己直接加限流熔断保护措施，可以很好的保护后面的缓存集群。
 
 **Big Key** 
 
@@ -5163,9 +4764,7 @@ Redis的性能下降，主从复制异常
 
 key。但如果Redis 的key比较多，执行该命令会比较慢
 
-2、获取生产Redis的rdb文件，通过rdbtools分析rdb生成csv文件，再导入MySQL或其他数据库中进行
-
-分析统计，根据size_in_bytes统计bigkey 
+2、获取生产Redis的rdb文件，通过rdbtools分析rdb生成csv文件，再导入MySQL或其他数据库中进行分析统计，根据size_in_bytes统计bigkey 
 
 大key的处理：
 
@@ -5175,9 +4774,7 @@ key。但如果Redis 的key比较多，执行该命令会比较慢
 
 如果必须用Redis存储，最好单独存储，不要和其他的key一起存储。采用一主一从或多从。
 
-2、单个简单的key存储的value很大，可以尝试将对象分拆成几个key-value， 使用mget获取值，这样
-
-分拆的意义在于分拆单次操作的压力，将操作压力平摊到多次操作中，降低对redis的IO影响。
+2、单个简单的key存储的value很大，可以尝试将对象分拆成几个key-value， 使用mget获取值，这样分拆的意义在于分拆单次操作的压力，将操作压力平摊到多次操作中，降低对redis的IO影响。
 
 2、hash， set，zset，list 中存储过多的元素，可以将这些元素分拆。（常见）
 
@@ -5203,11 +4800,7 @@ hash_key:3:{filed3:value}
 
 4、使用 lazy delete (unlink命令)
 
-删除指定的key(s),若key不存在则该key被跳过。但是，相比DEL会产生阻塞，该命令会在另一个线程中
-
-回收内存，因此它是非阻塞的。 这也是该命令名字的由来：仅将keys从key空间中删除，真正的数据删
-
-除会在后续异步操作。
+删除指定的key(s),若key不存在则该key被跳过。但是，相比DEL会产生阻塞，该命令会在另一个线程中回收内存，因此它是非阻塞的。 这也是该命令名字的由来：仅将keys从key空间中删除，真正的数据删除会在后续异步操作。
 
 redis> SET key1 "Hello" 
 
@@ -5233,7 +4826,7 @@ redis> UNLINK key1 key2 key3
 
 异步更新 定时任务 数据不保证时时一致 不穿DB
 
-**不同策略之间的优缺点****策略 一致性 维护成本**
+**不同策略之间的优缺点策略 一致性 维护成本**
 
 利用Redis的缓存淘汰策略被动更新 最差 最低
 
@@ -5241,7 +4834,7 @@ redis> UNLINK key1 key2 key3
 
 在更新数据库时主动更新 较强 最高
 
-**与****Mybatis****整合**
+**与****Mybatis整合**
 
 可以使用Redis做Mybatis的二级缓存，在分布式环境下可以使用。
 
@@ -5917,19 +5510,11 @@ jedis.del(lockKey);
 
 CAP模型分析
 
-在分布式环境下不可能满足三者共存，只能满足其中的两者共存，在分布式下P不能舍弃(舍弃P就是单
-
-机了)。
+在分布式环境下不可能满足三者共存，只能满足其中的两者共存，在分布式下P不能舍弃(舍弃P就是单机了)。
 
 所以只能是CP（强一致性模型）和AP(高可用模型)。 
 
-问题在于如果调用jedis.del()方法的时候，这把锁已经不属于当前客户端的时候会解除他人加的 
-
-锁。那么是否真的有这种场景？答案是肯定的，比如客户端A加锁，一段时间之后客户端A解锁，在执行 
-
-jedis.del()之前，锁突然过期了，此时客户端B尝试加锁成功，然后客户端A再执行del()方法，则将客 
-
-户端B的锁给解除了。 
+问题在于如果调用jedis.del()方法的时候，这把锁已经不属于当前客户端的时候会解除他人加的 锁。那么是否真的有这种场景？答案是肯定的，比如客户端A加锁，一段时间之后客户端A解锁，在执行 jedis.del()之前，锁突然过期了，此时客户端B尝试加锁成功，然后客户端A再执行del()方法，则将客 户端B的锁给解除了。 
 
 public static boolean releaseLock(String lockKey, String requestId) { 
 
@@ -5959,9 +5544,7 @@ Redis集群不能保证数据的随时一致性，只能保证数据的最终一
 
 当业务不需要数据强一致性时，比如：社交场景，就可以使用Redis实现分布式锁
 
-当业务必须要数据的强一致性，即不允许重复获得锁，比如金融场景（重复下单，重复转账）就不要使
-
-用
+当业务必须要数据的强一致性，即不允许重复获得锁，比如金融场景（重复下单，重复转账）就不要使用
 
 可以使用CP模型实现，比如：zookeeper和etcd。
 
@@ -5971,9 +5554,9 @@ Redisson是架设在Redis基础上的一个Java驻内存数据网格（In-Memory
 
 Redisson在基于NIO的Netty框架上，生产环境使用分布式锁。
 
-**加入****jar****包的依赖**
+**加入jar包的依赖**
 
-**配置****Redisson**
+**配置Redisson**
 
 <dependency> 
 
@@ -6163,21 +5746,15 @@ myLock :{"8743c9c0-0795-4907-87fd-6c719a6b4586:1":1 }
 
 很简单，第一个if判断会执行“exists myLock”，发现myLock这个锁key已经存在了。
 
-接着第二个if判断，判断一下，myLock锁key的hash数据结构中，是否包含客户端2的ID，但是明显不
+接着第二个if判断，判断一下，myLock锁key的hash数据结构中，是否包含客户端2的ID，但是明显不是的，因为那里包含的是客户端1的ID。
 
-是的，因为那里包含的是客户端1的ID。
-
-所以，客户端2会获取到pttl myLock返回的一个数字，这个数字代表了myLock这个锁key的**剩余生存时**
-
-**间。**比如还剩15000毫秒的生存时间。
+所以，客户端2会获取到pttl myLock返回的一个数字，这个数字代表了myLock这个锁key的**剩余生存时间。**比如还剩15000毫秒的生存时间。
 
 此时客户端2会进入一个while循环，不停的尝试加锁。
 
 **自动延时机制**
 
-只要客户端1一旦加锁成功，就会启动一个watch dog看门狗，**他是一个后台线程，会每隔****10****秒检查一**
-
-**下**，如果客户端1还持有锁key，那么就会不断的延长锁key的生存时间。
+只要客户端1一旦加锁成功，就会启动一个watch dog看门狗，**他是一个后台线程，会每隔10秒检查一下**，如果客户端1还持有锁key，那么就会不断的延长锁key的生存时间。
 
 **可重入锁机制**
 
@@ -6251,9 +5828,7 @@ myLock :{"8743c9c0-0795-4907-87fd-6c719a6b4586:1":2 }
 
 “redisson_lock**channel**{” + getName() + “}”
 
-– ARGV[1] ：reids消息体，这里只需要一个字节的标记就可以，主要标记redis的key已经解锁，再结合
-
-redis的Subscribe，能唤醒其他订阅解锁消息的客户端线程申请锁。
+– ARGV[1] ：reids消息体，这里只需要一个字节的标记就可以，主要标记redis的key已经解锁，再结合redis的Subscribe，能唤醒其他订阅解锁消息的客户端线程申请锁。
 
 – ARGV[2] ：锁的超时时间，防止死锁
 
@@ -6301,9 +5876,7 @@ redis的Subscribe，能唤醒其他订阅解锁消息的客户端线程申请锁
 
 可以采用分布式锁解决这个问题。
 
-订单1和订单2都从Redis中获得分布式锁(setnx)，谁能获得锁谁进行下单操作，这样就把订单系统下单
-
-的顺序串行化了，就不会出现超卖的情况了。伪码如下：
+订单1和订单2都从Redis中获得分布式锁(setnx)，谁能获得锁谁进行下单操作，这样就把订单系统下单的顺序串行化了，就不会出现超卖的情况了。伪码如下：
 
 注意此种方法会降低处理效率，这样不适合秒杀的场景，秒杀可以使用CAS和Redis队列的方式。
 
@@ -6347,17 +5920,13 @@ CAP AP CP CP
 
 三者的对比，如下表
 
-**分布式集群架构中的****session****分离**
+**分布式集群架构中的session分离**
 
-传统的session是由tomcat自己进行维护和管理，但是对于集群或分布式环境，不同的tomcat管理各自
-
-的session，很难进行session共享，通过传统的模式进行session共享，会造成session对象在各个
-
-tomcat之间，通过网络和Io进行复制，极大的影响了系统的性能。
+传统的session是由tomcat自己进行维护和管理，但是对于集群或分布式环境，不同的tomcat管理各自的session，很难进行session共享，通过传统的模式进行session共享，会造成session对象在各个tomcat之间，通过网络和Io进行复制，极大的影响了系统的性能。
 
 可以将登录成功后的Session信息，存放在Redis中，这样多个服务器(Tomcat)可以共享Session信息。
 
-利用**spring-session-data-redis**（SpringSession），可以实现**基于****redis****来实现的****session****分离**。这个
+利用**spring-session-data-redis**（SpringSession），可以实现**基于**redis**来实现的**session**分离**。这个
 
 知识点在讲Spring的时候可以讲过了，这里就不再赘述了。
 
@@ -6375,7 +5944,7 @@ tomcat之间，通过网络和Io进行复制，极大的影响了系统的性能
 
 **一、键值设计**
 
-**1****、****key****名设计**
+**1**、key名设计
 
 可读性和可管理性
 
@@ -6397,17 +5966,11 @@ tomcat之间，通过网络和Io进行复制，极大的影响了系统的性能
 
 反例：一个包含200万个元素的list。 拆解
 
-非字符串的bigkey，不要使用del删除，使用hscan、sscan、zscan方式渐进式删除，同时要注意防止
-
-bigkey过期时间自动删除问题(例如一个200万的zset设置1小时过期，会触发del操作，造成阻塞，而且
-
-该操作不会不出现在慢查询中(latency可查))，查找方法和删除方法
+非字符串的bigkey，不要使用del删除，使用hscan、sscan、zscan方式渐进式删除，同时要注意防止bigkey过期时间自动删除问题(例如一个200万的zset设置1小时过期，会触发del操作，造成阻塞，而且该操作不会不出现在慢查询中(latency可查))，查找方法和删除方法
 
 选择适合的数据类型
 
-例如：实体类型(要合理控制和使用数据结构内存编码优化配置,例如ziplist，但也要注意节省内存和性能
-
-之间的平衡)
+例如：实体类型(要合理控制和使用数据结构内存编码优化配置,例如ziplist，但也要注意节省内存和性能之间的平衡)
 
 反例：
 
@@ -6415,17 +5978,13 @@ bigkey过期时间自动删除问题(例如一个200万的zset设置1小时过�
 
 控制key的生命周期
 
-redis不是垃圾桶，建议使用expire设置过期时间(条件允许可以打散过期时间，防止集中过期)，不过期
-
-的数据重点关注idletime。
+redis不是垃圾桶，建议使用expire设置过期时间(条件允许可以打散过期时间，防止集中过期)，不过期的数据重点关注idletime。
 
 **二、命令使用**
 
 1、O(N)命令关注N的数量
 
-例如hgetall、lrange、smembers、zrange、sinter等并非不能使用，但是需要明确N的值。有遍历的
-
-需求可以使用hscan、sscan、zscan代替。
+例如hgetall、lrange、smembers、zrange、sinter等并非不能使用，但是需要明确N的值。有遍历的需求可以使用hscan、sscan、zscan代替。
 
 2、禁用命令禁止线上使用keys、flflushall、flflushdb等，通过redis的rename机制禁掉命令，或者使用scan的方式渐
 
@@ -6433,9 +5992,7 @@ redis不是垃圾桶，建议使用expire设置过期时间(条件允许可以�
 
 3、合理使用select
 
-redis的多数据库较弱，使用数字进行区分，很多客户端支持较差，同时多业务用多数据库实际还是单线
-
-程处理，会有干扰。
+redis的多数据库较弱，使用数字进行区分，很多客户端支持较差，同时多业务用多数据库实际还是单线程处理，会有干扰。
 
 4、使用批量操作提高效率
 
@@ -6541,21 +6098,15 @@ redis大key搜索工具
 
 ## 5. Redis高可用方案
 
-“高可用性”（High Availability）通常来描述一个系统经过专门的设计，从而减少停工时间，而保持其服
+“高可用性”（High Availability）通常来描述一个系统经过专门的设计，从而减少停工时间，而保持其服务的高度可用性。CAP的A AP模型
 
-务的高度可用性。CAP的A AP模型
-
-单机的Redis是无法保证高可用性的，当Redis服务器宕机后，即使在有持久化的机制下也无法保证不丢
-
-失数据。所以我们采用Redis多机和集群的方式来保证Redis的高可用性。
+单机的Redis是无法保证高可用性的，当Redis服务器宕机后，即使在有持久化的机制下也无法保证不丢失数据。所以我们采用Redis多机和集群的方式来保证Redis的高可用性。
 
 单进程+单线程 + 多机 （集群）
 
 ### 5.1 **主从复制**
 
-Redis支持主从复制功能，可以通过执行slaveof（Redis5以后改成replicaof）或者在配置文件中设置
-
-slaveof(Redis5以后改成replicaof)来开启复制功能。
+Redis支持主从复制功能，可以通过执行slaveof（Redis5以后改成replicaof）或者在配置文件中设置slaveof(Redis5以后改成replicaof)来开启复制功能。
 
 （一主一从）（一主多从）
 
@@ -6607,9 +6158,7 @@ replicaof 127.0.0.1 6379
 
 **保存主节点信息**
 
-当客户端向从服务器发送slaveof(replicaof) 主机地址（127.0.0.1） 端口（6379）时：从服务器将主
-
-机ip（127.0.0.1）和端口（6379）保存到redisServer的masterhost和masterport中。
+当客户端向从服务器发送slaveof(replicaof) 主机地址（127.0.0.1） 端口（6379）时：从服务器将主机ip（127.0.0.1）和端口（6379）保存到redisServer的masterhost和masterport中。
 
 Struct redisServer{ 
 
@@ -6619,9 +6168,7 @@ int masterport;//主服务器端口
 
 } ;
 
-从服务器将向发送SLAVEOF命令的客户端返回OK，表示复制指令已经被接收，而实际上复制工作是在
-
-OK返回之后进行。
+从服务器将向发送SLAVEOF命令的客户端返回OK，表示复制指令已经被接收，而实际上复制工作是在OK返回之后进行。
 
 **建立****socket****连接**
 
@@ -6669,9 +6216,7 @@ Redis 2.8之后分为全量同步和增量同步，具体的后面详细讲解�
 
 **命令传播**
 
-当同步数据完成后，主从服务器就会进入命令传播阶段，主服务器只要将自己执行的写命令发送给从服
-
-务器，而从服务器只要一直执行并接收主服务器发来的写命令。
+当同步数据完成后，主从服务器就会进入命令传播阶段，主服务器只要将自己执行的写命令发送给从服务器，而从服务器只要一直执行并接收主服务器发来的写命令。
 
 **同步数据集**
 
@@ -6725,21 +6270,15 @@ Redis 的主从同步，分为**全量同步**和**增量同步**。
 
 Redis **的全量同步过程主要分三个阶段：**
 
-**同步快照阶段：** Master 创建并发送**快照**RDB给 Slave ， Slave 载入并解析快照。 Master 同时将
-
-此阶段所产生的新的写命令存储到缓冲区。
+**同步快照阶段：** Master 创建并发送**快照**RDB给 Slave ， Slave 载入并解析快照。 Master 同时将此阶段所产生的新的写命令存储到缓冲区。
 
 **同步写缓冲阶段：** Master 向 Slave 同步存储在缓冲区的写操作命令。
 
 **同步增量阶段：** Master 向 Slave 同步写操作命令。**增量同步**
 
-Redis增量同步主要指Slave完成初始化后开始正常工作时， Master 发生的写操作同步到 Slave 的
+Redis增量同步主要指Slave完成初始化后开始正常工作时， Master 发生的写操作同步到 Slave 的过程。
 
-过程。
-
-通常情况下， Master 每执行一个写命令就会向 Slave 发送相同的**写命令**，然后 Slave 接收并执
-
-行。
+通常情况下， Master 每执行一个写命令就会向 Slave 发送相同的**写命令**，然后 Slave 接收并执行。
 
 **心跳检测**
 
@@ -6755,11 +6294,7 @@ replconf ack <replication_offset>
 
 \1. 检测主从的连接状态检测主从服务器的网络连接状态
 
-通过向主服务器发送INFO replication命令，可以列出从服务器列表，可以看出从最后一次向主发
-
-送命令距离现在过了多少秒。lag的值应该在0或1之间跳动，如果超过1则说明主从之间的连接有
-
-故障。
+通过向主服务器发送INFO replication命令，可以列出从服务器列表，可以看出从最后一次向主发送命令距离现在过了多少秒。lag的值应该在0或1之间跳动，如果超过1则说明主从之间的连接有故障。
 
 \1. 辅助实现min-slaves
 
@@ -6769,21 +6304,11 @@ min-slaves-to-write 3 （min-replicas-to-write 3 ）
 
 min-slaves-max-lag 10 （min-replicas-max-lag 10）
 
-上面的配置表示：从服务器的数量少于3个，或者三个从服务器的延迟（lag）值都大于或等于10
-
-秒时，主服务器将拒绝执行写命令。这里的延迟值就是上面INFOreplication命令的lag值。
+上面的配置表示：从服务器的数量少于3个，或者三个从服务器的延迟（lag）值都大于或等于10秒时，主服务器将拒绝执行写命令。这里的延迟值就是上面INFOreplication命令的lag值。
 
 \2. 检测命令丢失
 
-如果因为网络故障，主服务器传播给从服务器的写命令在半路丢失，那么当从服务器向主服务器发
-
-送REPLCONF ACK命令时，主服务器将发觉从服务器当前的复制偏移量少于自己的复制偏移量，
-
-然后主服务器就会根据从服务器提交的复制偏移量，在复制积压缓冲区里面找到从服务器缺少的数
-
-据，并将这些数据重新发送给从服务器。（补发） 网络不断
-
-增量同步：网断了，再次连接时
+如果因为网络故障，主服务器传播给从服务器的写命令在半路丢失，那么当从服务器向主服务器发送REPLCONF ACK命令时，主服务器将发觉从服务器当前的复制偏移量少于自己的复制偏移量，然后主服务器就会根据从服务器提交的复制偏移量，在复制积压缓冲区里面找到从服务器缺少的数据，并将这些数据重新发送给从服务器。（补发） 网络不断增量同步：网断了，再次连接时
 
 ### 5.2 **哨兵模式**
 
@@ -7115,9 +6640,7 @@ repl_backlog_histlen:1048576
 
 **向主服务器和从服务器发送消息****(****以订阅的方式****)**
 
-默认情况下，Sentinel每2s一次，向所有被监视的主服务器和从服务器所订阅的—sentinel—:hello频道
-
-上发送消息，消息中会携带Sentinel自身的信息和主服务器的信息。
+默认情况下，Sentinel每2s一次，向所有被监视的主服务器和从服务器所订阅的—sentinel—:hello频道上发送消息，消息中会携带Sentinel自身的信息和主服务器的信息。
 
 PUBLISH _sentinel_:hello "< s_ip > < s_port >< s_runid >< s_epoch > < m_name > < 
 
@@ -7129,11 +6652,7 @@ m_ip >< m_port ><m_epoch>"
 
 subscribe —sentinel—:hello
 
-**Sentinel****彼此之间只创建命令连接，而不创建订阅连接**，因为Sentinel通过订阅主服务器或从服务器，
-
-就可以感知到新的Sentinel的加入，而一旦新Sentinel加入后，相互感知的Sentinel通过命令连接来通信
-
-就可以了。
+**Sentinel****彼此之间只创建命令连接，而不创建订阅连接**，因为Sentinel通过订阅主服务器或从服务器，就可以感知到新的Sentinel的加入，而一旦新Sentinel加入后，相互感知的Sentinel通过命令连接来通信就可以了。
 
 **检测主观下线状态**
 
@@ -7161,15 +6680,11 @@ SENTINEL is-master-down-by-addr <ip> <port> <current_epoch> <runid>
 
 <down_state>< leader_runid >< leader_epoch >
 
-判断它们是否也认为主服务器下线。如果达到Sentinel配置中的quorum数量的Sentinel实例都判断主服
+判断它们是否也认为主服务器下线。如果达到Sentinel配置中的quorum数量的Sentinel实例都判断主服务器为主观下线，则该主服务器就会被判定为客观下线(**ODown**)。
 
-务器为主观下线，则该主服务器就会被判定为客观下线(**ODown**)。
+**选举Leader Sentinel**
 
-**选举****Leader Sentinel**
-
-当一个主服务器被判定为客观下线后，监视这个主服务器的所有Sentinel会通过选举算法（raft），选
-
-出一个Leader Sentinel去执行failover（故障转移）操作。
+当一个主服务器被判定为客观下线后，监视这个主服务器的所有Sentinel会通过选举算法（raft），选出一个Leader Sentinel去执行failover（故障转移）操作。
 
 **哨兵****leader****选举**
 
@@ -7297,9 +6812,7 @@ sentinel.conf 的配置文件的内容都会发生相应的改变，即， Maste
 
 存储能力的横向扩展
 
-即使Redis的服务能力能够满足应用需求，但是随着存储数据的增加，单台机器受限于机器本身的存储
-
-容量，将数据分散到多台机器上存储使得Redis服务可以横向扩展。
+即使Redis的服务能力能够满足应用需求，但是随着存储数据的增加，单台机器受限于机器本身的存储容量，将数据分散到多台机器上存储使得Redis服务可以横向扩展。
 
 **分区的方式**
 
@@ -7345,13 +6858,13 @@ N:Redis实例个数(Redis主机)
 
 迁移复杂，需要重新计算，扩展较差（利用一致性hash环）
 
-**client****端分区**
+**client端分区**
 
 对于一个给定的key，客户端直接选择正确的节点来进行读写。许多Redis客户端都实现了客户端分区
 
 (JedisPool)，也可以自行编程实现。
 
-**部署方案****客户端选择算法**
+**部署方案客户端选择算法**
 
 **hash**
 
@@ -7373,11 +6886,11 @@ Redis实例=1844213068%3
 
 余数为2，所以选择Redis3。
 
-**普通****Hash****的优势**
+**普通Hash的优势**
 
 实现简单，热点数据分布均匀
 
-**普通****Hash****的缺陷**
+**普通Hash的缺陷**
 
 节点数固定，扩展的话需要重新计算
 
@@ -7387,77 +6900,39 @@ Redis实例=1844213068%3
 
 **基本概念**
 
-普通hash是对主机数量取模，而一致性hash是对2^32（4 294 967 296）取模。我们把2^32想象成一
-
-个圆，就像钟表一样，钟表的圆可以理解成由60个点组成的圆，而此处我们把这个圆想象成由2^32个
-
-点组成的圆，示意图如下：
+普通hash是对主机数量取模，而一致性hash是对2^32（4 294 967 296）取模。我们把2^32想象成一个圆，就像钟表一样，钟表的圆可以理解成由60个点组成的圆，而此处我们把这个圆想象成由2^32个点组成的圆，示意图如下：
 
 圆环的正上方的点代表0，0点右侧的第一个点代表1，以此类推，2、3、4、5、6……直到2^32-1,也就
 
 是说0点左侧的第一个点代表2^32-1 。我们把这个由2的32次方个点组成的圆环称为hash环。假设我们有3台缓存服务器，服务器A、服务器B、服务器C，那么，在生产环境中，这三台服务器肯定
 
-有自己的IP地址，我们使用它们各自的IP地址进行哈希计算，使用哈希后的结果对2^32取模，可以使用
+有自己的IP地址，我们使用它们各自的IP地址进行哈希计算，使用哈希后的结果对2^32取模，可以使用如下公式：
 
-如下公式：
+**hash**（服务器的IP地址）**% 2^32**
 
-**hash****（服务器的****IP****地址）** **% 2^32**
-
-通过上述公式算出的结果一定是一个0到2^32-1之间的一个整数，我们就用算出的这个整数，代表服务
-
-器A、服务器B、服务器C，既然这个整数肯定处于0到2^32-1之间，那么，上图中的hash环上必定有一
-
-个点与这个整数对应，也就是服务器A、服务器B、服务C就可以映射到这个环上，如下图：
+通过上述公式算出的结果一定是一个0到2^32-1之间的一个整数，我们就用算出的这个整数，代表服务器A、服务器B、服务器C，既然这个整数肯定处于0到2^32-1之间，那么，上图中的hash环上必定有一个点与这个整数对应，也就是服务器A、服务器B、服务C就可以映射到这个环上，如下图：
 
 假设，我们需要使用Redis缓存数据，那么我们使用如下公式可以将数据映射到上图中的hash环上。
 
-**hash****（****key****）** **% 2^32**
+**hash**（key） **% 2^32**
 
 映射后的示意图如下，下图中的橘黄色圆形表示数据
 
-现在服务器与数据都被映射到了hash环上，上图中的数据将会被缓存到服务器A上，因为从数据的位置
+现在服务器与数据都被映射到了hash环上，上图中的数据将会被缓存到服务器A上，因为从数据的位置开始，沿顺时针方向遇到的第一个服务器就是A服务器，所以，上图中的数据将会被缓存到服务器A上。
 
-开始，沿顺时针方向遇到的第一个服务器就是A服务器，所以，上图中的数据将会被缓存到服务器A上。
-
-如图：将缓存服务器与被缓存对象都映射到hash环上以后，从被缓存对象的位置出发，沿**顺时针方向**遇到的**第**
-
-**一个服务器**，就是当前对象将要缓存于的服务器，由于被缓存对象与服务器hash后的值是固定的，所
-
-以，在服务器不变的情况下，数据必定会被缓存到固定的服务器上，那么，当下次想要访问这个数据
-
-时，只要再次使用相同的算法进行计算，即可算出这个数据被缓存在哪个服务器上，直接去对应的服务
-
-器查找对应的数据即可。多条数据存储如下：
+如图：将缓存服务器与被缓存对象都映射到hash环上以后，从被缓存对象的位置出发，沿**顺时针方向**遇到的**第一个服务器**，就是当前对象将要缓存于的服务器，由于被缓存对象与服务器hash后的值是固定的，所以，在服务器不变的情况下，数据必定会被缓存到固定的服务器上，那么，当下次想要访问这个数据时，只要再次使用相同的算法进行计算，即可算出这个数据被缓存在哪个服务器上，直接去对应的服务器查找对应的数据即可。多条数据存储如下：
 
 **优点**
 
-添加或移除节点时，数据只需要做部分的迁移，比如上图中把C服务器移除，则数据4迁移到服务器A
+添加或移除节点时，数据只需要做部分的迁移，比如上图中把C服务器移除，则数据4迁移到服务器A中，而其他的数据保持不变。添加效果是一样的。
 
-中，而其他的数据保持不变。添加效果是一样的。
+**hash环偏移**
 
-**hash****环偏移**
+在介绍一致性哈希的概念时，我们理想化的将3台服务器均匀的映射到了hash环上。也就是说数据的范围是2^32/N。但实际情况往往不是这样的。有可能某个服务器的数据会很多，某个服务器的数据会很少，造成服务器性能不平均。这种现象称为hash环偏移。理论上我们可以通过增加服务器的方式来减少偏移，但这样成本较高，所以我们可以采用虚拟节点的方式，也就是虚拟服务器，如图：
 
-在介绍一致性哈希的概念时，我们理想化的将3台服务器均匀的映射到了hash环上。也就是说数据的范
+"虚拟节点"是"实际节点"（实际的物理服务器）在hash环上的复制品,一个实际节点可以对应多个虚拟节点。
 
-围是2^32/N。但实际情况往往不是这样的。有可能某个服务器的数据会很多，某个服务器的数据会很
-
-少，造成服务器性能不平均。这种现象称为hash环偏移。理论上我们可以通过增加服务器的方式来减少偏移，但这样成本较高，所以我们可以采用虚拟节点的方
-
-式，也就是虚拟服务器，如图：
-
-"虚拟节点"是"实际节点"（实际的物理服务器）在hash环上的复制品,一个实际节点可以对应多个虚拟节
-
-点。
-
-从上图可以看出，A、B、C三台服务器分别虚拟出了一个虚拟节点，当然，如果你需要，也可以虚拟出
-
-更多的虚拟节点。引入虚拟节点的概念后，缓存的分布就均衡多了，上图中，1号、3号数据被缓存在服
-
-务器A中，5号、4号数据被缓存在服务器B中，6号、2号数据被缓存在服务器C中，如果你还不放心，可
-
-以虚拟出更多的虚拟节点，以便减小hash环偏斜所带来的影响，虚拟节点越多，hash环上的节点就越
-
-多，缓存被均匀分布的概率就越大。
+从上图可以看出，A、B、C三台服务器分别虚拟出了一个虚拟节点，当然，如果你需要，也可以虚拟出更多的虚拟节点。引入虚拟节点的概念后，缓存的分布就均衡多了，上图中，1号、3号数据被缓存在服务器A中，5号、4号数据被缓存在服务器B中，6号、2号数据被缓存在服务器C中，如果你还不放心，可以虚拟出更多的虚拟节点，以便减小hash环偏斜所带来的影响，虚拟节点越多，hash环上的节点就越多，缓存被均匀分布的概率就越大。
 
 **缺点**
 
@@ -7465,19 +6940,13 @@ Redis实例=1844213068%3
 
 客户端需要自己处理数据路由、高可用、故障转移等问题
 
-使用分区，数据的处理会变得复杂，不得不对付多个redis数据库和AOF文件，不得在多个实例和主机之
+使用分区，数据的处理会变得复杂，不得不对付多个redis数据库和AOF文件，不得在多个实例和主机之间持久化你的数据。**不易扩展**
 
-间持久化你的数据。**不易扩展**
-
-一旦节点的增或者删操作，都会导致key无法在redis中命中，必须重新根据节点计算，并手动迁移全部
-
-或部分数据。
+一旦节点的增或者删操作，都会导致key无法在redis中命中，必须重新根据节点计算，并手动迁移全部或部分数据。
 
 **proxy****端分区**
 
-在客户端和服务器端引入一个代理或代理集群，客户端将命令发送到代理上，由代理根据算法，将命令
-
-路由到相应的服务器上。常见的代理有Codis（豌豆荚）和TwemProxy（Twitter）。
+在客户端和服务器端引入一个代理或代理集群，客户端将命令发送到代理上，由代理根据算法，将命令路由到相应的服务器上。常见的代理有Codis（豌豆荚）和TwemProxy（Twitter）。
 
 **部署架构**
 
@@ -7485,9 +6954,7 @@ Codis由豌豆荚于2014年11月开源，基于Go和C开发，是近期涌现的
 
 Codis 3.x 由以下组件组成：
 
-**Codis Server**：基于 redis-3.2.8 分支开发。增加了额外的数据结构，以支持 slot 有关的操作以及
-
-数据迁移指令。
+**Codis Server**：基于 redis-3.2.8 分支开发。增加了额外的数据结构，以支持 slot 有关的操作以及数据迁移指令。
 
 **Codis Proxy**：客户端连接的 Redis 代理服务, 实现了 Redis 协议。 除部分命令不支持以外，表现
 
