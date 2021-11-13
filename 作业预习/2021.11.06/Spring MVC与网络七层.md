@@ -345,6 +345,8 @@ public String handleRedirect(String name,RedirectAttributes redirectAttributes) 
 　　⑤在action的生命周期中，拦截器可以多次被调用，而过滤器只能在容器初始化时被调用一次。
 　　⑥拦截器可以获取IOC容器中的各个bean，而过滤器就不行，拦截器里可以注入一个service，可以调用业务逻辑。
 
+​		https://segmentfault.com/a/1190000020982049
+
 # **计算机网络**
 
 ## 1. 计算机网络概述
