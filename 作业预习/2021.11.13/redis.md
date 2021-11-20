@@ -5250,30 +5250,6 @@ SpringApplication.run(RcacheApplication.class, args);
 
 }##
 
-### 4.4 **分布式锁**
-
-**watch**
-
-**利用****Watch****实现****Redis****乐观锁**
-
-乐观锁基于CAS（Compare And Swap）思想（比较并替换），是不具有互斥性，不会产生锁等待而消
-
-耗资源，但是需要反复的重试，但也是因为重试的机制，能比较快的响应。因此我们可以利用redis来实
-
-现乐观锁。具体思路如下：
-
-1、利用redis的watch功能，监控这个redisKey的状态值
-
-2、获取redisKey的值
-
-3、创建redis事务
-
-4、给这个key的值+1
-
-5、然后去执行这个事务，如果key的值被修改过则回滚，key不加1
-
-**Redis****乐观锁实现秒杀**
-
 127.0.0.1:6379> keys * 
 
 \1) "\xac\xed\x00\x05sr\x00 
@@ -5296,115 +5272,84 @@ p\x00\x00\x00\x00sq\x00~\x00\x06\x7f\xff\xff\xfft\x00Cselect\n \n
 
 id, name, address\n \n from tusert\x00\x15SqlSessionFactoryBeanx" 
 
+### 4.4 **分布式锁**
+
+##### **watch**
+
+**利用Watch实现Redis乐观锁**
+
+乐观锁基于CAS（Compare And Swap）思想（比较并替换），是不具有互斥性，不会产生锁等待而消耗资源，但是需要反复的重试，但也是因为重试的机制，能比较快的响应。因此我们可以利用redis来实现乐观锁。具体思路如下：
+
+1. 利用redis的watch功能，监控这个redisKey的状态值
+
+2. 获取redisKey的值
+
+3. 创建redis事务
+
+4. 给这个key的值+1
+
+5. 然后去执行这个事务，如果key的值被修改过则回滚，key不加1
+
+**Redis乐观锁实现秒杀**
+
+```java
 public class Second { 
-
-public static void main(String[] arg) { 
-
-String redisKey = "lock"; 
-
-ExecutorService executorService = Executors.newFixedThreadPool(20); 
-
-try {
-
-Jedis jedis = new Jedis("127.0.0.1", 6378); 
-
-// 初始值 
-
-jedis.set(redisKey, "0"); 
-
-jedis.close(); 
-
-} catch (Exception e) { 
-
-e.printStackTrace(); 
-
+  public static void main(String[] arg) { 
+    String redisKey = "lock"; 
+    ExecutorService executorService = Executors.newFixedThreadPool(20); 
+    try {
+      Jedis jedis = new Jedis("127.0.0.1", 6378); 
+      // 初始值 
+      jedis.set(redisKey, "0"); 
+      jedis.close(); 
+    } catch (Exception e) { 
+      e.printStackTrace(); 
+    }
+    for (int i = 0; i < 1000; i++) { 
+      executorService.execute(() -> { 
+        Jedis jedis1 = new Jedis("127.0.0.1", 6378); 
+        try {
+          jedis1.watch(redisKey); 
+          String redisValue = jedis1.get(redisKey); 
+          int valInteger = Integer.valueOf(redisValue); 
+          String userInfo = UUID.randomUUID().toString();// 没有秒完 
+          if (valInteger < 20) { 
+            Transaction tx = jedis1.multi(); 
+            tx.incr(redisKey); 
+            List list = tx.exec(); 
+            // 秒成功 失败返回空list而不是空 
+            if (list != null && list.size() > 0) { 
+              System.out.println("用户：" + userInfo + "，秒杀成功！当前成功人数：" + (valInteger + 1)); 
+            }// 版本变化，被别人抢了。 
+            else {
+              System.out.println("用户：" + userInfo + "，秒杀失败"); 
+            } 
+          }
+          // 秒完了 
+          else {
+            System.out.println("已经有20人秒杀成功，秒杀结束"); 
+          } 
+        } catch (Exception e) { 
+          e.printStackTrace(); 
+        } finally { 
+          jedis1.close(); 
+        } 
+      }); 
+    }
+    executorService.shutdown(); 
+  }
 }
+```
 
-for (int i = 0; i < 1000; i++) { 
+##### **setnx**
 
-executorService.execute(() -> { 
-
-Jedis jedis1 = new Jedis("127.0.0.1", 6378); 
-
-try {
-
-jedis1.watch(redisKey); 
-
-String redisValue = jedis1.get(redisKey); 
-
-int valInteger = Integer.valueOf(redisValue); 
-
-String userInfo = UUID.randomUUID().toString();// 没有秒完 
-
-if (valInteger < 20) { 
-
-Transaction tx = jedis1.multi(); 
-
-tx.incr(redisKey); 
-
-List list = tx.exec(); 
-
-// 秒成功 失败返回空list而不是空 
-
-if (list != null && list.size() > 0) { 
-
-System.out.println("用户：" + userInfo + "，秒杀成功！ 
-
-当前成功人数：" + (valInteger + 1)); 
-
-}
-
-// 版本变化，被别人抢了。 
-
-else {
-
-System.out.println("用户：" + userInfo + "，秒杀失 
-
-败"); 
-
-} 
-
-}
-
-// 秒完了 
-
-else {
-
-System.out.println("已经有20人秒杀成功，秒杀结束"); 
-
-} 
-
-} catch (Exception e) { 
-
-e.printStackTrace(); 
-
-} finally { 
-
-jedis1.close(); 
-
-} 
-
-}); 
-
-}
-
-executorService.shutdown(); 
-
-} 
-
-}
-
-**setnx**
-
-**实现原理**
+###### **实现原理**
 
 共享资源互斥
 
 共享资源串行化
 
-单应用中使用锁：（单进程多线程）
-
-synchronized、ReentrantLock
+单应用中使用锁：（单进程多线程）synchronized、ReentrantLock
 
 分布式应用中使用锁：（多进程多线程）
 
@@ -5412,87 +5357,77 @@ synchronized、ReentrantLock
 
 利用Redis的单线程特性对共享资源进行串行化处理
 
-**实现方式**
+###### **实现方式**
 
-获取锁方式1（**使用****set****命令实现**）--推荐
+获取锁方式1（**使用set命令实现**）--推荐
 
-方式2（**使用****setnx****命令实现**） -- 并发会产生问题
+```java
+/** 
+ * 使用redis的set命令实现获取分布式锁
+ * @param lockKey 可以就是锁
+ * @param requestId 请求ID，保证同一性 uuid+threadID
+ * @param expireTime 过期时间，避免死锁
+ * @return 
+*/ 
+public boolean getLock(String lockKey,String requestId,int expireTime) { 
+  //NX:保证互斥性 
+  // hset 原子性操作 只要lockKey有效 则说明有进程在使用分布式锁 
+  String result = jedis.set(lockKey, requestId, "NX", "EX", expireTime);
+  if("OK".equals(result)) { 
+    return true; 
+  }
+  return false; 
+}
+```
+
+方式2（**使用setnx命令实现**） -- 并发会产生问题
+
+```java
+public boolean getLock(String lockKey,String requestId,int expireTime) { 
+  Long result = jedis.setnx(lockKey, requestId); 
+  if(result == 1) { 
+    //成功设置 进程down 永久有效 别的进程就无法获得锁 
+    jedis.expire(lockKey, expireTime); 
+    return true; 
+  }
+  return false; 
+}
+```
 
 释放锁
 
 方式1（del命令实现） -- 并发
 
-/** 
-
-\* 使用redis的set命令实现获取分布式锁 
-
-\* @param lockKey 可以就是锁 
-
-\* @param requestId 请求ID，保证同一性 uuid+threadID 
-
-\* @param expireTime 过期时间，避免死锁 
-
-\* @return 
-
-*/ 
-
-public boolean getLock(String lockKey,String requestId,int expireTime) { 
-
-//NX:保证互斥性 
-
-// hset 原子性操作 只要lockKey有效 则说明有进程在使用分布式锁 
-
-String result = jedis.set(lockKey, requestId, "NX", "EX", expireTime); 
-
-if("OK".equals(result)) { 
-
-return true; 
-
-}
-
-return false; 
-
-}
-
-public boolean getLock(String lockKey,String requestId,int expireTime) { 
-
-Long result = jedis.setnx(lockKey, requestId); 
-
-if(result == 1) { 
-
-//成功设置 进程down 永久有效 别的进程就无法获得锁 
-
-jedis.expire(lockKey, expireTime); 
-
-return true; 
-
-}
-
-return false; 
-
-}
-
+```java
 /**
-
-\* 释放分布式锁 
-
-\* @param lockKey 
-
-\* @param requestId 
-
+ * 释放分布式锁 
+ * @param lockKey 
+ * @param requestId 
 */ 
-
 public static void releaseLock(String lockKey,String requestId) { 
+  if (requestId.equals(jedis.get(lockKey))) { 
+    jedis.del(lockKey); 
+  }
+}
+```
 
-if (requestId.equals(jedis.get(lockKey))) { 
+> 问题在于如果调用jedis.del()方法的时候，这把锁已经不属于当前客户端的时候会解除他人加的 锁。那么是否真的有这种场景？答案是肯定的，比如客户端A加锁，一段时间之后客户端A解锁，在执行 jedis.del()之前，锁突然过期了，此时客户端B尝试加锁成功，然后客户端A再执行del()方法，则将客 户端B的锁给解除了。 
 
-jedis.del(lockKey); 
+方式2（**redis+lua脚本实现**）--推荐
 
-} 
+```java
+public static boolean releaseLock(String lockKey, String requestId) { 
+  String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end"; 
+  Object result = jedis.eval(script, Collections.singletonList(lockKey), 
+                             Collections.singletonList(requestId)); 
+  if (result.equals(1L)) { 
+    return true; 
+  }
+  return false; 
+}
+```
 
-}方式2（**redis+lua****脚本实现**）--推荐
-
-**存在问题**
+###### **存在问题**
 
 单机
 
@@ -5502,11 +5437,13 @@ jedis.del(lockKey);
 
 无法保证数据的强一致性，在主机宕机时会造成锁的重复获得。
 
+![image-20211115174457955](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/2021.11.13/image-20211115174457955-6969503.png)
+
 无法续租
 
 超过expireTime后，不能继续使用
 
-**本质分析**
+###### **本质分析**
 
 CAP模型分析
 
@@ -5514,27 +5451,9 @@ CAP模型分析
 
 所以只能是CP（强一致性模型）和AP(高可用模型)。 
 
-问题在于如果调用jedis.del()方法的时候，这把锁已经不属于当前客户端的时候会解除他人加的 锁。那么是否真的有这种场景？答案是肯定的，比如客户端A加锁，一段时间之后客户端A解锁，在执行 jedis.del()之前，锁突然过期了，此时客户端B尝试加锁成功，然后客户端A再执行del()方法，则将客 户端B的锁给解除了。 
 
-public static boolean releaseLock(String lockKey, String requestId) { 
 
-String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return 
-
-redis.call('del', KEYS[1]) else return 0 end"; 
-
-Object result = jedis.eval(script, Collections.singletonList(lockKey), 
-
-Collections.singletonList(requestId)); 
-
-if (result.equals(1L)) { 
-
-return true; 
-
-}
-
-return false; 
-
-}分布式锁是CP模型，Redis集群是AP模型。 (base)
+分布式锁是CP模型，Redis集群是AP模型。 (base)
 
 Redis集群不能保证数据的随时一致性，只能保证数据的最终一致性。
 
@@ -5548,7 +5467,7 @@ Redis集群不能保证数据的随时一致性，只能保证数据的最终一
 
 可以使用CP模型实现，比如：zookeeper和etcd。
 
-**Redisson****分布式锁的使用**
+##### **Redisson分布式锁的使用**
 
 Redisson是架设在Redis基础上的一个Java驻内存数据网格（In-Memory Data Grid）。
 
@@ -5556,145 +5475,112 @@ Redisson在基于NIO的Netty框架上，生产环境使用分布式锁。
 
 **加入jar包的依赖**
 
+```xml
+<dependency> 
+  <groupId>org.redisson</groupId> 
+  <artifactId>redisson</artifactId> 
+  <version>2.7.0</version> 
+</dependency> 
+```
+
 **配置Redisson**
 
-<dependency> 
-
-<groupId>org.redisson</groupId> 
-
-<artifactId>redisson</artifactId> 
-
-<version>2.7.0</version> 
-
-</dependency> 
-
+```java
 public class RedissonManager { 
+  private static Config config = new Config(); 
+  //声明redisso对象 
+  private static Redisson redisson = null; 
+  //实例化redisson 
+  static{ 
+    config.useClusterServers() 
+    // 集群状态扫描间隔时间，单位是毫秒 
+    .setScanInterval(2000) 
+    //cluster方式至少6个节点(3主3从，3主做sharding，3从用来保证主宕机后可以高可用) 
+    .addNodeAddress("redis://127.0.0.1:6379" ) 
+    .addNodeAddress("redis://127.0.0.1:6380") 
+    .addNodeAddress("redis://127.0.0.1:6381") 
+    .addNodeAddress("redis://127.0.0.1:6382") 
+    .addNodeAddress("redis://127.0.0.1:6383") 
+    .addNodeAddress("redis://127.0.0.1:6384"); 
+    //得到redisson对象
+    redisson = (Redisson) Redisson.create(config); 
+  }
+  //获取redisson对象的方法 
+  public static Redisson getRedisson(){ 
+    return redisson; 
+  } 
+}
+```
 
-private static Config config = new Config(); 
+**锁的获取和释放**
 
-//声明redisso对象 
-
-private static Redisson redisson = null; 
-
-//实例化redisson 
-
-static{ 
-
-config.useClusterServers() 
-
-// 集群状态扫描间隔时间，单位是毫秒 
-
-.setScanInterval(2000) 
-
-//cluster方式至少6个节点(3主3从，3主做sharding，3从用来保证主宕机后可以高可用) 
-
-.addNodeAddress("redis://127.0.0.1:6379" ) 
-
-.addNodeAddress("redis://127.0.0.1:6380") 
-
-.addNodeAddress("redis://127.0.0.1:6381") 
-
-.addNodeAddress("redis://127.0.0.1:6382") 
-
-.addNodeAddress("redis://127.0.0.1:6383") 
-
-.addNodeAddress("redis://127.0.0.1:6384"); 
-
-//得到redisson对象**锁的获取和释放**
+```java
+public class DistributedRedisLock { 
+  //从配置类中获取redisson对象 
+  private static Redisson redisson = RedissonManager.getRedisson(); 
+  private static final String LOCK_TITLE = "redisLock_"; 
+  //加锁 
+  public static boolean acquire(String lockName){ 
+    //声明key对象 
+    String key = LOCK_TITLE + lockName; 
+    //获取锁对象 
+    RLock mylock = redisson.getLock(key); 
+    //加锁，并且设置锁过期时间3秒，防止死锁的产生 uuid+threadId 
+    mylock.lock(2,3,TimeUtil.SECOND); 
+    //加锁成功 
+    return true; 
+  }
+  //锁的释放 
+  public static void release(String lockName){ 
+    //必须是和加锁时的同一个key 
+    String key = LOCK_TITLE + lockName; 
+    //获取所对象 
+    RLock mylock = redisson.getLock(key); 
+    //释放锁（解锁） 
+    mylock.unlock(); 
+  }
+}
+```
 
 **业务逻辑中使用分布式锁**
 
-**Redisson****分布式锁的实现原理**
-
-redisson = (Redisson) Redisson.create(config); 
-
-}
-
-//获取redisson对象的方法 
-
-public static Redisson getRedisson(){ 
-
-return redisson; 
-
-} 
-
-}
-
-public class DistributedRedisLock { 
-
-//从配置类中获取redisson对象 
-
-private static Redisson redisson = RedissonManager.getRedisson(); 
-
-private static final String LOCK_TITLE = "redisLock_"; 
-
-//加锁 
-
-public static boolean acquire(String lockName){ 
-
-//声明key对象 
-
-String key = LOCK_TITLE + lockName; 
-
-//获取锁对象 
-
-RLock mylock = redisson.getLock(key); 
-
-//加锁，并且设置锁过期时间3秒，防止死锁的产生 uuid+threadId 
-
-mylock.lock(2,3,TimeUtil.SECOND); 
-
-//加锁成功 
-
-return true; 
-
-} 
-
-//锁的释放 
-
-public static void release(String lockName){ 
-
-//必须是和加锁时的同一个key 
-
-String key = LOCK_TITLE + lockName; 
-
-//获取所对象 
-
-RLock mylock = redisson.getLock(key); 
-
-//释放锁（解锁） 
-
-mylock.unlock(); 
-
-} 
-
-}
-
+```java
 public String discount() throws IOException{ 
+  String key = "lock001"; 
+  //加锁 
+  DistributedRedisLock.acquire(key); 
+  //执行具体业务逻辑 
+  //dosoming 
+  //释放锁 
+  DistributedRedisLock.release(key); 
+  //返回结果 
+  return soming; 
+}
+```
 
-String key = "lock001"; 
+**Redisson分布式锁的实现原理**
 
-//加锁 
+![image-20211115175025897](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/2021.11.13/image-20211115175025897.png)
 
-DistributedRedisLock.acquire(key); 
 
-//执行具体业务逻辑 
 
-dosoming 
-
-//释放锁 
-
-DistributedRedisLock.release(key); 
-
-//返回结果 
-
-return soming; 
-
-}**加锁机制**
+**加锁机制**
 
 如果该客户端面对的是一个redis cluster集群，他首先会根据hash节点选择一台机器。
 
 发送lua脚本到redis服务器上，脚本如下:
+
+```lua
+"if (redis.call('exists',KEYS[1])==0) then "+ --看有没有锁 
+		"redis.call('hset',KEYS[1],ARGV[2],1) ; "+ --无锁 加锁
+    "redis.call('pexpire',KEYS[1],ARGV[1]) ; "+ 
+    "return nil; end ;" + 
+"if (redis.call('hexists',KEYS[1],ARGV[2]) ==1 ) then "+ --我加的锁
+    "redis.call('hincrby',KEYS[1],ARGV[2],1) ; "+ --重入锁 
+    "redis.call('pexpire',KEYS[1],ARGV[1]) ; "+ 
+  "return nil; end ;" + 
+"return redis.call('pttl',KEYS[1]) ;" --不能加锁，返回锁的时间
+```
 
 lua的作用：保证这段复杂业务逻辑执行的原子性。
 
@@ -5718,29 +5604,11 @@ hset myLock
 
 myLock :{"8743c9c0-0795-4907-87fd-6c719a6b4586:1":1 }
 
-上述就代表“8743c9c0-0795-4907-87fd-6c719a6b4586:1”这个客户端对“myLock”这个锁key完成了加
-
-锁。
+上述就代表“8743c9c0-0795-4907-87fd-6c719a6b4586:1”这个客户端对“myLock”这个锁key完成了加锁。
 
 接着会执行“pexpire myLock 30000”命令，设置myLock这个锁key的生存时间是30秒。
 
-"if (redis.call('exists',KEYS[1])==0) then "+ --看有没有锁 
-
-"redis.call('hset',KEYS[1],ARGV[2],1) ; "+ --无锁 加锁 
-
-"redis.call('pexpire',KEYS[1],ARGV[1]) ; "+ 
-
-"return nil; end ;" + 
-
-"if (redis.call('hexists',KEYS[1],ARGV[2]) ==1 ) then "+ --我加的锁 
-
-"redis.call('hincrby',KEYS[1],ARGV[2],1) ; "+ --重入锁 
-
-"redis.call('pexpire',KEYS[1],ARGV[1]) ; "+ 
-
-"return nil; end ;" + 
-
-"return redis.call('pttl',KEYS[1]) ;" --不能加锁，返回锁的时间**锁互斥机制**
+**锁互斥机制**
 
 那么在这个时候，如果客户端2来尝试加锁，执行了同样的一段lua脚本，会咋样呢？
 
@@ -5760,9 +5628,7 @@ myLock :{"8743c9c0-0795-4907-87fd-6c719a6b4586:1":1 }
 
 第一个if判断肯定不成立，“exists myLock”会显示锁key已经存在了。
 
-第二个if判断会成立，因为myLock的hash数据结构中包含的那个ID，就是客户端1的那个ID，也就是
-
-“8743c9c0-0795-4907-87fd-6c719a6b4586:1”
+第二个if判断会成立，因为myLock的hash数据结构中包含的那个ID，就是客户端1的那个ID，也就是“8743c9c0-0795-4907-87fd-6c719a6b4586:1”
 
 此时就会执行可重入加锁的逻辑，他会用：
 
@@ -5778,49 +5644,29 @@ myLock :{"8743c9c0-0795-4907-87fd-6c719a6b4586:1":2 }
 
 执行lua脚本如下：
 
-\#如果key已经不存在，说明已经被解锁，直接发布（publish）redis消息 
-
+```lua
+#如果key已经不存在，说明已经被解锁，直接发布（publish）redis消息 
 "if (redis.call('exists', KEYS[1]) == 0) then " + 
-
-"redis.call('publish', KEYS[2], ARGV[1]); " + 
-
-"return 1; " + 
-
-"end;" + 
-
-\# key和field不匹配，说明当前客户端线程没有持有锁，不能主动解锁。 不是我加的锁 不能解锁 
-
-"if (redis.call('hexists', KEYS[1], ARGV[3]) == 0) then " + 
-
-"return nil;" + 
-
-"end; " + 
-
-\# 将value减1 
-
-"local counter = redis.call('hincrby', KEYS[1], ARGV[3], 
-
--1); " + 
-
-\# 如果counter>0说明锁在重入，不能删除key 
-
-"if (counter > 0) then " + 
-
-"redis.call('pexpire', KEYS[1], ARGV[2]); " + 
-
-"return 0; " + 
-
-\# 删除key并且publish 解锁消息 
-
-"else " + 
-
-"redis.call('del', KEYS[1]); " + #删除锁 
-
-"redis.call('publish', KEYS[2], ARGV[1]); " + 
-
-"return 1; "+"end; " + 
-
-"return nil;",
+                          "redis.call('publish', KEYS[2], ARGV[1]); " + 
+                          "return 1; " + 
+                    "end;" + 
+# key和field不匹配，说明当前客户端线程没有持有锁，不能主动解锁。 不是我加的锁 不能解锁 
+                    "if (redis.call('hexists', KEYS[1], ARGV[3]) == 0) then " + 
+                        "return nil;" + 
+                    "end; " + 
+# 将value减1 
+                    "local counter = redis.call('hincrby', KEYS[1], ARGV[3], -1); " + 
+# 如果counter>0说明锁在重入，不能删除key 
+                    "if (counter > 0) then " + 
+                        "redis.call('pexpire', KEYS[1], ARGV[2]); " + 
+                        "return 0; " + 
+# 删除key并且publish 解锁消息 
+                    "else " + 
+                    "redis.call('del', KEYS[1]); " + #删除锁 
+                    "redis.call('publish', KEYS[2], ARGV[1]); " + 
+                    "return 1; "+"end; " + 
+                    "return nil;",
+```
 
 – KEYS[1] ：需要加锁的key，这里需要是字符串类型。
 
@@ -5844,83 +5690,77 @@ myLock :{"8743c9c0-0795-4907-87fd-6c719a6b4586:1":2 }
 
 然后呢，另外的客户端2就可以尝试完成加锁了。
 
-**分布式锁特性**
+##### **分布式锁特性**
 
-互斥性
+- 互斥性
 
-任意时刻，只能有一个客户端获取锁，不能同时有两个客户端获取到锁。
+  任意时刻，只能有一个客户端获取锁，不能同时有两个客户端获取到锁。
 
-同一性
+- 同一性
 
-锁只能被持有该锁的客户端删除，不能由其它客户端删除。
+  锁只能被持有该锁的客户端删除，不能由其它客户端删除。
 
-可重入性
+- 可重入性
 
-持有某个锁的客户端可继续对该锁加锁，实现锁的续租
+  持有某个锁的客户端可继续对该锁加锁，实现锁的续租
 
-容错性
+- 容错性
 
-锁失效后（超过生命周期）自动释放锁（key失效），其他客户端可以继续获得该锁，防止死锁
+  锁失效后（超过生命周期）自动释放锁（key失效），其他客户端可以继续获得该锁，防止死锁
 
-**分布式锁的实际应用**
+##### **分布式锁的实际应用**
 
-数据并发竞争
+- 数据并发竞争
 
-利用分布式锁可以将处理串行化，前面已经讲过了。
+  利用分布式锁可以将处理串行化，前面已经讲过了。
 
-防止库存超卖订单1下单前会先查看库存，库存为10，所以下单5本可以成功；
+- 防止库存超卖
 
-订单2下单前会先查看库存，库存为10，所以下单8本可以成功；
+  ![image-20211115175859936](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/2021.11.13/image-20211115175859936-6970342.png)
 
-订单1和订单2 同时操作，共下单13本，但库存只有10本，显然库存不够了，这种情况称为库存超卖。
+  订单1下单前会先查看库存，库存为10，所以下单5本可以成功；
 
-可以采用分布式锁解决这个问题。
+  订单2下单前会先查看库存，库存为10，所以下单8本可以成功；
 
-订单1和订单2都从Redis中获得分布式锁(setnx)，谁能获得锁谁进行下单操作，这样就把订单系统下单的顺序串行化了，就不会出现超卖的情况了。伪码如下：
+  订单1和订单2 同时操作，共下单13本，但库存只有10本，显然库存不够了，这种情况称为库存超卖。
 
-注意此种方法会降低处理效率，这样不适合秒杀的场景，秒杀可以使用CAS和Redis队列的方式。
+  可以采用分布式锁解决这个问题。
 
-**Zookeeper****分布式锁的对比**
+  ![image-20211115175929187](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/2021.11.13/image-20211115175929187-6970370.png)
 
-基于Redis的set实现分布式锁
+  订单1和订单2都从Redis中获得分布式锁(setnx)，谁能获得锁谁进行下单操作，这样就把订单系统下单的顺序串行化了，就不会出现超卖的情况了。伪码如下：
 
-基于zookeeper临时节点的分布式锁
+  ```java
+  //加锁并设置有效期 
+  if(redis.lock("RDL",200)){ 
+    //判断库存 
+    if (orderNum<getCount()){ 
+      //加锁成功 ,可以下单 
+      order(5); 
+      //释放锁 
+      redis,unlock("RDL"); 
+    } 
+  }
+  ```
 
-//加锁并设置有效期 
+  注意此种方法会降低处理效率，这样不适合秒杀的场景，秒杀可以使用CAS和Redis队列的方式。
 
-if(redis.lock("RDL",200)){ 
+**Zookeeper分布式锁的对比**
 
-//判断库存 
+- 基于Redis的set实现分布式锁
 
-if (orderNum<getCount()){ 
 
-//加锁成功 ,可以下单 
+- 基于zookeeper临时节点的分布式锁
 
-order(5); 
+  ![image-20211115180236225](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/2021.11.13/image-20211115180236225-6970557.png)
 
-//释放锁 
+- 基于etcd实现
 
-redis,unlock("RDL"); 
+  三者的对比，如下表
 
-} 
+  ![image-20211115180209258](/Users/zhang/Documents/lagou/lagou_private_education/作业预习/2021.11.13/image-20211115180209258-6970531.png)
 
-}**Redis zookeeper etcd**
-
-一致性算法 无 paxos（ZAB） raft
-
-CAP AP CP CP
-
-高可用 主从集群 n+1 （n至少为2） n+1
-
-接口类型 客户端 客户端 http/grpc
-
-实现 setNX createEphemeral restful API
-
-基于etcd实现
-
-三者的对比，如下表
-
-**分布式集群架构中的session分离**
+### 4.5 **分布式集群架构中的session分离**
 
 传统的session是由tomcat自己进行维护和管理，但是对于集群或分布式环境，不同的tomcat管理各自的session，很难进行session共享，通过传统的模式进行session共享，会造成session对象在各个tomcat之间，通过网络和Io进行复制，极大的影响了系统的性能。
 
@@ -5930,19 +5770,16 @@ CAP AP CP CP
 
 知识点在讲Spring的时候可以讲过了，这里就不再赘述了。
 
-### 4.5 **阿里Redis使用手册**
+### 4.6 **阿里Redis使用手册**
 
 本文主要介绍在使用阿里云Redis的开发规范，从下面几个方面进行说明。
 
-**·** 键值设计
+- 键值设计
+- 命令使用
+- 客户端使用
+- 相关工具通过本文的介绍可以减少使用Redis过程带来的问题。
 
-**·** 命令使用
-
- · 客户端使用
-
- · 相关工具通过本文的介绍可以减少使用Redis过程带来的问题。
-
-**一、键值设计**
+##### **一、键值设计**
 
 **1**、key名设计
 
@@ -5986,9 +5823,7 @@ redis不是垃圾桶，建议使用expire设置过期时间(条件允许可以�
 
 例如hgetall、lrange、smembers、zrange、sinter等并非不能使用，但是需要明确N的值。有遍历的需求可以使用hscan、sscan、zscan代替。
 
-2、禁用命令禁止线上使用keys、flflushall、flflushdb等，通过redis的rename机制禁掉命令，或者使用scan的方式渐
-
-进式处理。
+2、禁用命令禁止线上使用keys、flflushall、flflushdb等，通过redis的rename机制禁掉命令，或者使用scan的方式渐进式处理。
 
 3、合理使用select
 
@@ -6086,7 +5921,7 @@ redis大key搜索工具
 
 阿里云Redis已经在内核层面解决热点key问题
 
-**五、删除****bigkey**
+**五、删除bigkey**
 
 1.下面操作可以使用pipeline加速。
 
@@ -6108,21 +5943,16 @@ redis大key搜索工具
 
 Redis支持主从复制功能，可以通过执行slaveof（Redis5以后改成replicaof）或者在配置文件中设置slaveof(Redis5以后改成replicaof)来开启复制功能。
 
-（一主一从）（一主多从）
+- 主对外从对内，主可写从不可写
+- 主挂了，从不可为主
 
-（传递复制）
+#### **主从配置**
 
-主对外从对内，主可写从不可写
-
-主挂了，从不可为主
-
-**主从配置**
-
-**主****Redis****配置**
+#### **主Redis配置**
 
 无需特殊配置
 
-**从****Redis****配置**
+#### **从Redis配置**
 
 修改从服务器上的 redis.conf 文件：
 
@@ -6132,9 +5962,9 @@ Redis支持主从复制功能，可以通过执行slaveof（Redis5以后改成re
 
 replicaof 127.0.0.1 6379
 
-**作用**
+#### **作用**
 
-**读写分离**
+##### **读写分离**
 
 一主多从，主从同步
 
@@ -6142,7 +5972,9 @@ replicaof 127.0.0.1 6379
 
 提升Redis的性能和吞吐量
 
-主从的数据一致性问题**数据容灾**
+主从的数据一致性问题
+
+##### **数据容灾**
 
 从机是主机的备份
 
@@ -6170,7 +6002,7 @@ int masterport;//主服务器端口
 
 从服务器将向发送SLAVEOF命令的客户端返回OK，表示复制指令已经被接收，而实际上复制工作是在OK返回之后进行。
 
-**建立****socket****连接**
+##### **建立socket连接**
 
 slaver与master建立socket连接
 
@@ -6182,7 +6014,7 @@ slaver关联文件事件处理器
 
 端。
 
-**发送****ping****命令**
+##### **发送ping命令**
 
 Slaver向Master发送ping命令1、检测socket的读写状态
 
@@ -6196,7 +6028,7 @@ Master的响应：
 
 3、timeout，说明网络超时
 
-**权限验证**
+##### **权限验证**
 
 主从正常连接后，进行权限验证
 
@@ -6210,15 +6042,15 @@ Master的响应：
 
 听端口号。
 
-**同步数据**
+##### **同步数据**
 
 Redis 2.8之后分为全量同步和增量同步，具体的后面详细讲解。
 
-**命令传播**
+##### **命令传播**
 
 当同步数据完成后，主从服务器就会进入命令传播阶段，主服务器只要将自己执行的写命令发送给从服务器，而从服务器只要一直执行并接收主服务器发来的写命令。
 
-**同步数据集**
+##### **同步数据集**
 
 Redis 2.8以前使用SYNC命令同步复制
 
@@ -6232,15 +6064,17 @@ Redis 2.8以前
 
 Redis的同步功能分为同步(sync)和命令传播(command propagate)。 
 
-1）**同步操作：**1. 通过从服务器发送到SYNC命令给主服务器
+1）**同步操作：**
 
-\2. 主服务器生成RDB文件并发送给从服务器，同时发送保存所有写命令给从服务器
+1. 通过从服务器发送到SYNC命令给主服务器
 
-\3. 从服务器清空之前数据并执行解释RDB文件
+2. 主服务器生成RDB文件并发送给从服务器，同时发送保存所有写命令给从服务器
 
-\4. 保持数据一致（还需要命令传播过程才能保持一致）
+3. 从服务器清空之前数据并执行解释RDB文件
 
-**2****）命令传播操作：**
+4. 保持数据一致（还需要命令传播过程才能保持一致）
+
+**2**）命令传播操作：
 
 同步操作完成后，主服务器执行写命令，该命令发送给从服务器并执行，使主从保存一致。
 
@@ -6292,11 +6126,11 @@ replconf ack <replication_offset>
 
 主要作用有三个：
 
-\1. 检测主从的连接状态检测主从服务器的网络连接状态
+1. 检测主从的连接状态检测主从服务器的网络连接状态
 
 通过向主服务器发送INFO replication命令，可以列出从服务器列表，可以看出从最后一次向主发送命令距离现在过了多少秒。lag的值应该在0或1之间跳动，如果超过1则说明主从之间的连接有故障。
 
-\1. 辅助实现min-slaves
+1. 辅助实现min-slaves
 
 Redis可以通过配置防止主服务器在不安全的情况下执行写命令
 
@@ -6306,7 +6140,7 @@ min-slaves-max-lag 10 （min-replicas-max-lag 10）
 
 上面的配置表示：从服务器的数量少于3个，或者三个从服务器的延迟（lag）值都大于或等于10秒时，主服务器将拒绝执行写命令。这里的延迟值就是上面INFOreplication命令的lag值。
 
-\2. 检测命令丢失
+2. 检测命令丢失
 
 如果因为网络故障，主服务器传播给从服务器的写命令在半路丢失，那么当从服务器向主服务器发送REPLCONF ACK命令时，主服务器将发觉从服务器当前的复制偏移量少于自己的复制偏移量，然后主服务器就会根据从服务器提交的复制偏移量，在复制积压缓冲区里面找到从服务器缺少的数据，并将这些数据重新发送给从服务器。（补发） 网络不断增量同步：网断了，再次连接时
 
