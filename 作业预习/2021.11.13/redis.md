@@ -5823,7 +5823,7 @@ redis不是垃圾桶，建议使用expire设置过期时间(条件允许可以�
 
 例如hgetall、lrange、smembers、zrange、sinter等并非不能使用，但是需要明确N的值。有遍历的需求可以使用hscan、sscan、zscan代替。
 
-2、禁用命令禁止线上使用keys、flflushall、flflushdb等，通过redis的rename机制禁掉命令，或者使用scan的方式渐进式处理。
+2、禁用命令禁止线上使用keys、flushall、flushdb等，通过redis的rename机制禁掉命令，或者使用scan的方式渐进式处理。
 
 3、合理使用select
 
